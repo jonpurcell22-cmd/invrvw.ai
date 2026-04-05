@@ -10,7 +10,6 @@ import {
   MessageSquareText,
   TrendingUp,
   UserCheck,
-  Play,
 } from "lucide-react";
 
 const STEPS = [
@@ -122,16 +121,16 @@ export default function HomePage() {
             className="mx-auto mt-16 max-w-3xl animate-fade-up"
             style={{ animationDelay: "150ms" }}
           >
-            <div className="relative overflow-hidden rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] shadow-[var(--shadow-elevated)]">
-              <div className="aspect-video flex items-center justify-center">
-                {/* Replace with actual video embed */}
-                <div className="flex flex-col items-center gap-3 text-[var(--fg-subtle)]">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--surface-hover)] transition-colors hover:bg-[var(--surface-raised)] cursor-pointer">
-                    <Play size={20} className="ml-0.5 text-[var(--fg-muted)]" />
-                  </div>
-                  <p className="text-sm">See how it works in 2 minutes</p>
-                </div>
-              </div>
+            <div className="overflow-hidden rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] shadow-[var(--shadow-elevated)]">
+              <video
+                className="aspect-video w-full"
+                controls
+                preload="metadata"
+                poster=""
+              >
+                <source src="/demo.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
             </div>
           </div>
         </div>
