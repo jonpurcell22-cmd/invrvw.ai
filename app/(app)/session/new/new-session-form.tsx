@@ -513,7 +513,7 @@ export function NewSessionForm() {
             </p>
           ) : null}
 
-          {error && step !== "jd" ? (
+          {error ? (
             <p
               ref={errorRef}
               className="mt-4 text-sm text-[var(--danger)]"
