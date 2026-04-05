@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { ShareButton } from "@/components/ShareButton";
 import {
   FileText,
   Mic,
@@ -75,7 +76,8 @@ export default function HomePage() {
           <span className="text-sm font-semibold tracking-tight text-[var(--fg)]">
             intrvw<span className="text-[var(--accent)]">.ai</span>
           </span>
-          <nav className="flex items-center gap-4">
+          <nav className="flex items-center gap-3">
+            <ShareButton />
             <Link
               href="/login"
               className="cursor-pointer text-sm text-[var(--fg-muted)] transition-colors duration-150 hover:text-[var(--fg)]"

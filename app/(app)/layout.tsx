@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
+import { ShareButton } from "@/components/ShareButton";
 import { Button } from "@/components/ui/Button";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -44,6 +45,7 @@ export default async function AppLayout({
             ) : null}
           </div>
           <div className="flex items-center gap-3">
+            <ShareButton />
             {isAnonymous ? (
               <>
                 <Link

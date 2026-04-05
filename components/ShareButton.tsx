@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, X, Check } from "lucide-react";
+import { Send, X, Check, Gift } from "lucide-react";
 
 export function ShareButton() {
   const [open, setOpen] = useState(false);
@@ -11,14 +11,12 @@ export function ShareButton() {
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Focus input when panel opens
   useEffect(() => {
     if (open && inputRef.current) {
       inputRef.current.focus();
     }
   }, [open]);
 
-  // Close on click outside
   useEffect(() => {
     if (!open) return;
     function handleClick(e: MouseEvent) {
@@ -44,7 +42,6 @@ export function ShareButton() {
       });
       const data = (await res.json()) as { mailto?: string };
 
-      // Open mailto link to send via user's email client
       if (data.mailto) {
         window.open(data.mailto, "_blank");
       }
@@ -56,7 +53,7 @@ export function ShareButton() {
         setSent(false);
       }, 2000);
     } catch {
-      // Silently fail — not critical
+      // Non-critical
     } finally {
       setSending(false);
     }
@@ -74,20 +71,20 @@ export function ShareButton() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50" ref={panelRef}>
-      {/* Share panel */}
+    <div className="relative" ref={panelRef}>
+      {/* Dropdown panel */}
       {open ? (
-        <div className="mb-3 w-72 animate-fade-up rounded-xl border border-[var(--border-strong)] bg-[var(--surface-solid)] p-4 shadow-[var(--shadow-elevated)]">
+        <div className="absolute right-0 top-full mt-2 w-80 animate-fade-in rounded-xl border border-[var(--border-strong)] bg-[var(--surface-solid)] p-4 shadow-[var(--shadow-elevated)] z-50">
           {sent ? (
             <div className="flex items-center gap-2 py-2 text-sm text-[var(--success)]">
               <Check size={16} />
-              <span>Link shared</span>
+              <span>Invite sent — you're a good friend</span>
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-[var(--fg)]">
-                  Share Intrvw.ai
+                <p className="text-sm font-semibold text-[var(--fg)]">
+                  Help a friend ace their interview
                 </p>
                 <button
                   type="button"
@@ -100,8 +97,9 @@ export function ShareButton() {
                   <X size={14} />
                 </button>
               </div>
-              <p className="mt-1 text-xs text-[var(--fg-subtle)]">
-                Know someone with an interview coming up?
+              <p className="mt-1.5 text-xs leading-relaxed text-[var(--fg-subtle)]">
+                Send them a free invite. No signup needed on their end — they
+                can start practicing immediately.
               </p>
               <div className="mt-3 flex gap-2">
                 <input
@@ -117,9 +115,10 @@ export function ShareButton() {
                   type="button"
                   onClick={handleSend}
                   disabled={!email.trim().includes("@") || sending}
-                  className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg bg-[var(--accent)] text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 text-xs font-medium text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <Send size={14} />
+                  <Send size={12} />
+                  Send
                 </button>
               </div>
             </>
@@ -127,18 +126,18 @@ export function ShareButton() {
         </div>
       ) : null}
 
-      {/* Trigger button */}
+      {/* Trigger */}
       <button
         type="button"
         onClick={() => {
           setOpen(!open);
           setSent(false);
         }}
-        className="flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--border-strong)] bg-[var(--surface-solid)] px-4 text-sm font-medium text-[var(--fg-muted)] shadow-[var(--shadow-card)] transition-all duration-150 hover:border-[var(--accent)]/30 hover:text-[var(--fg)]"
-        aria-label="Share Intrvw.ai"
+        className="flex h-8 cursor-pointer items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 text-xs font-medium text-white transition-colors hover:bg-[var(--accent-hover)]"
+        aria-label="Invite a friend to Intrvw.ai"
       >
-        <Send size={14} />
-        <span className="hidden sm:inline">Share</span>
+        <Gift size={13} />
+        <span>Invite a friend</span>
       </button>
     </div>
   );
