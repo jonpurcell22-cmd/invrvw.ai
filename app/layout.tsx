@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, DM_Mono } from "next/font/google";
+import { ShareButton } from "@/components/ShareButton";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -35,6 +36,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-[var(--bg)] text-[var(--fg)]">
         {children}
+        <ShareButton />
       </body>
     </html>
   );
