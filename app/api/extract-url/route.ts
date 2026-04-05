@@ -36,6 +36,50 @@ export async function POST(request: Request) {
     fetchUrl = `https://docs.google.com/document/d/${gdocMatch[1]}/export?format=txt`;
   }
 
+  // Handle Ashby job board — extract from their API
+  const ashbyMatch = rawUrl.match(
+    /jobs\.ashbyhq\.com\/([^/]+)\/([a-f0-9-]+)/,
+  );
+  if (ashbyMatch) {
+    try {
+      const apiRes = await fetch(
+        "https://api.ashbyhq.com/posting-api/job-posting",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobPostingId: ashbyMatch[2] }),
+          signal: AbortSignal.timeout(10000),
+        },
+      );
+      if (apiRes.ok) {
+        const data = (await apiRes.json()) as {
+          info?: {
+            title?: string;
+            descriptionHtml?: string;
+            descriptionPlain?: string;
+            team?: string;
+            location?: string;
+          };
+        };
+        if (data.info) {
+          const parts = [
+            data.info.title,
+            data.info.team ? `Team: ${data.info.team}` : null,
+            data.info.location ? `Location: ${data.info.location}` : null,
+            "",
+            data.info.descriptionPlain ?? "",
+          ].filter(Boolean);
+          const text = parts.join("\n").trim();
+          if (text.length > 50) {
+            return NextResponse.json({ text });
+          }
+        }
+      }
+    } catch {
+      // Fall through to HTML extraction
+    }
+  }
+
   try {
     const res = await fetch(fetchUrl, {
       headers: {
@@ -72,6 +116,14 @@ export async function POST(request: Request) {
     // Parse HTML and extract text
     const $ = cheerio.load(raw);
 
+    // Extract metadata first — many job boards (Ashby, Lever, Greenhouse)
+    // are SPAs that put the full JD in meta description or og:description
+    const metaDesc =
+      $('meta[name="description"]').attr("content")?.trim() ?? "";
+    const ogDesc =
+      $('meta[property="og:description"]').attr("content")?.trim() ?? "";
+    const title = $("title").text().trim();
+
     // Remove scripts, styles, nav, footer, header
     $(
       "script, style, nav, footer, header, iframe, noscript, [role=navigation], [role=banner]",
@@ -87,6 +139,9 @@ export async function POST(request: Request) {
       ".job-content",
       "#job-description",
       ".description",
+      ".ashby-job-posting-brief-description",
+      ".posting-headline",
+      '[data-testid="job-description"]',
     ];
 
     let text = "";
@@ -108,6 +163,14 @@ export async function POST(request: Request) {
       .replace(/\n{3,}/g, "\n\n")
       .replace(/[ \t]+/g, " ")
       .trim();
+
+    // If DOM extraction failed, use meta description (common for SPA job boards)
+    if (text.length < 50) {
+      const bestMeta = ogDesc.length > metaDesc.length ? ogDesc : metaDesc;
+      if (bestMeta.length > 50) {
+        text = title ? `${title}\n\n${bestMeta}` : bestMeta;
+      }
+    }
 
     if (!text || text.length < 50) {
       return NextResponse.json(

@@ -1,5 +1,5 @@
 {
-  "name": "prepiq",
+  "name": "intrvw-ai",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -13,6 +13,7 @@
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
     "cheerio": "^1.2.0",
+    "lucide-react": "^1.7.0",
     "mammoth": "^1.12.0",
     "next": "16.2.2",
     "pdf-parse": "^2.4.5",

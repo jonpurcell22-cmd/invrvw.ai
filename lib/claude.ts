@@ -80,13 +80,13 @@ export interface SessionGenerationResult {
   questions: GeneratedQuestion[];
 }
 
-const SESSION_JSON_SYSTEM = `You are PrepIQ, an expert interview coach. You produce structured data for a coaching product (not a chatbot).
+const SESSION_JSON_SYSTEM = `You are Intrvw.ai, an expert interview coach. You produce structured data for a coaching product (not a chatbot).
 
 You have access to web search. Use it to research the employer company inferred from the job description (and resume context): products, market position, culture, recent news, and mission. Summarize findings in company_research_summary (plain text, suitable for storage).
 
 Infer seniority_level as one of: intern, early_career, mid, senior, staff, executive. Base this on the job description and resume. Infer the field/industry from the job description to calibrate scoring appropriately.
 
-Generate between 8 and 12 interview questions tailored to the role, stage, and seniority. At least 2–3 questions must explicitly reference company-specific context from your research (name products, strategy, culture, or recent public information). Distribute question types based on seniority: heavier behavioral weighting for mid and senior levels; more situational questions for early-career candidates. Adjust question difficulty based on interview stage: phone screen questions should filter and qualify; final round questions should test for bar-raising strategic thinking.
+Generate between 4 and 6 interview questions tailored to the role, stage, and seniority. At least 1–2 questions must explicitly reference company-specific context from your research (name products, strategy, culture, or recent public information). Distribute question types based on seniority: heavier behavioral weighting for mid and senior levels; more situational questions for early-career candidates. Adjust question difficulty based on interview stage: phone screen questions should filter and qualify; final round questions should test for bar-raising strategic thinking.
 
 question_category must be exactly one of: Behavioral, Situational, Technical, Leadership, Culture Fit, Role-Specific.
 
@@ -118,9 +118,9 @@ Then apply question type modifiers:
 - Role-Specific: Default to Specificity and Analytical as primary signals
 
 Apply interview stage calibration:
-- Phone Screen: Emphasize Relevance (25%) and Communication Clarity (25%). 4-6 questions.
-- First Round: Standard seniority weights. 8-12 questions.
-- Final Round: Impact 20%, Analytical 20%, Values 15%. Bar-raising threshold. 8-12 questions.
+- Phone Screen: Emphasize Relevance (25%) and Communication Clarity (25%). 4-5 questions.
+- First Round: Standard seniority weights. 5-6 questions.
+- Final Round: Impact 20%, Analytical 20%, Values 15%. Bar-raising threshold. 5-6 questions.
 - Panel: Same as Final Round, avoid duplicate question types.
 
 Include a notes field in the rubric explaining weight adjustments made and why.
@@ -174,7 +174,7 @@ ${input.jobDescriptionText}
   ]
 }
 
-The questions array must have length 8–12. rubric.dimensions must have exactly 7 objects whose key values are exactly the seven keys listed in the system message. Weights must sum to 1.0.`;
+The questions array must have length 4–6. rubric.dimensions must have exactly 7 objects whose key values are exactly the seven keys listed in the system message. Weights must sum to 1.0.`;
 }
 
 function extractAssistantText(message: Message): string {
@@ -242,8 +242,8 @@ export function validateAndNormalizeSessionGeneration(
   if (!Array.isArray(questionsRaw)) {
     throw new Error("Invalid JSON: questions must be an array");
   }
-  if (questionsRaw.length < 4 || questionsRaw.length > 12) {
-    throw new Error(`Invalid JSON: expected 4–12 questions, got ${questionsRaw.length}`);
+  if (questionsRaw.length < 3 || questionsRaw.length > 8) {
+    throw new Error(`Invalid JSON: expected 4–6 questions, got ${questionsRaw.length}`);
   }
 
   const questions: GeneratedQuestion[] = [];

@@ -55,7 +55,7 @@ export function LoginForm() {
       <CardHeader>
         <CardTitle>Log in</CardTitle>
         <CardDescription>
-          Use the email and password for your PrepIQ account.
+          Use the email and password for your Intrvw.ai account.
         </CardDescription>
       </CardHeader>
       <CardContent>

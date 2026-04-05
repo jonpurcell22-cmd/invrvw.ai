@@ -9,7 +9,7 @@ export default function AuthLayout({
     <div className="flex min-h-full flex-1 flex-col bg-[var(--bg)]">
       <header className="px-6 py-6">
         <Link href="/" className="text-sm font-bold tracking-tight">
-          <span className="text-gradient">PrepIQ</span>
+          <span className="text-gradient">Intrvw.ai</span>
         </Link>
       </header>
       <div className="relative flex flex-1 flex-col items-center justify-center px-6 pb-24">

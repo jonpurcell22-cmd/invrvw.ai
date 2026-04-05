@@ -24,7 +24,7 @@ export default async function AppLayout({
               href={isAnonymous ? "/" : "/dashboard"}
               className="text-sm font-bold tracking-tight"
             >
-              <span className="text-gradient">PrepIQ</span>
+              <span className="text-gradient">Intrvw.ai</span>
             </Link>
             {!isAnonymous ? (
               <nav className="hidden items-center gap-6 text-sm text-[var(--fg-muted)] sm:flex">

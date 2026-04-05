@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "PrepIQ",
-    template: "%s · PrepIQ",
+    default: "Intrvw.ai",
+    template: "%s · Intrvw.ai",
   },
   description:
     "AI-powered interview preparation: tailored questions, voice or text practice, and scored feedback.",

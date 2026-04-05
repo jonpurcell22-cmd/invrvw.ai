@@ -15,7 +15,7 @@ export default function AdminLayout({
               href="/admin"
               className="text-sm font-bold tracking-tight text-[var(--fg)]"
             >
-              <span className="text-gradient">PrepIQ</span>{" "}
+              <span className="text-gradient">Intrvw.ai</span>{" "}
               <span className="font-normal text-[var(--fg-subtle)]">Admin</span>
             </Link>
             <nav className="hidden items-center gap-6 text-sm text-[var(--fg-muted)] sm:flex">
