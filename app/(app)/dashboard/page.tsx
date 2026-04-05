@@ -73,7 +73,7 @@ export default async function DashboardPage() {
       <section className="mt-12">
         <h2 className="sr-only">Your sessions</h2>
         {rows.length === 0 ? (
-          <div className="flex flex-col items-center justify-center glass gradient-border rounded-2xl px-6 py-16 text-center">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-strong)] bg-[var(--surface)] px-6 py-16 text-center">
             <p className="text-sm text-[var(--fg-muted)]">
               Upload a resume and job description to generate your first set of
               tailored interview questions.
@@ -99,7 +99,7 @@ export default async function DashboardPage() {
                 <li key={s.id}>
                   <Link
                     href={href}
-                    className="group relative block glass gradient-border rounded-2xl p-5 shadow-[var(--shadow-card)] transition-all duration-300 hover:shadow-[var(--shadow-glow)] hover:-translate-y-1"
+                    className="group relative block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)] transition-all duration-150 hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
@@ -117,7 +117,7 @@ export default async function DashboardPage() {
                     <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs text-[var(--fg-subtle)]">
                       <span>{date}</span>
                       {s.overall_score != null ? (
-                        <span className={`font-mono font-medium text-gradient`}>
+                        <span className={`font-mono font-medium text-[var(--accent)]`}>
                           {s.overall_score}/100
                         </span>
                       ) : (

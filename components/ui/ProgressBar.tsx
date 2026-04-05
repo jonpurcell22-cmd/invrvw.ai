@@ -17,20 +17,20 @@ export function ProgressBar({
       {label ? (
         <div className="mb-2 flex justify-between text-xs">
           <span className="text-[var(--fg-muted)]">{label}</span>
-          <span className="font-mono font-medium text-gradient">
+          <span className="font-mono font-medium text-[var(--accent)]">
             {Math.round(pct)}%
           </span>
         </div>
       ) : null}
       <div
-        className="h-2 w-full overflow-hidden rounded-full bg-[var(--surface-raised)]"
+        className="h-1 w-full overflow-hidden rounded-full bg-[var(--surface-raised)]"
         role="progressbar"
         aria-valuenow={Math.round(pct)}
         aria-valuemin={0}
         aria-valuemax={100}
       >
         <div
-          className="h-full rounded-full bg-gradient-to-r from-[var(--grad-start)] via-[var(--grad-mid)] to-[var(--grad-end)] transition-[width] duration-500 ease-out"
+          className="h-full rounded-full bg-[var(--accent)] transition-[width] duration-500 ease-out"
           style={{ width: `${pct}%` }}
         />
       </div>

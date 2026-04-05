@@ -7,7 +7,7 @@ export function Card({
 }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
   return (
     <div
-      className={`glass rounded-2xl border border-[var(--border)] shadow-[var(--shadow-card)] ${className}`}
+      className={`rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)] ${className}`}
       {...props}
     >
       {children}
@@ -37,7 +37,7 @@ export function CardTitle({
 }: HTMLAttributes<HTMLHeadingElement> & { children: ReactNode }) {
   return (
     <h2
-      className={`text-base font-semibold tracking-tight text-[var(--fg)] ${className}`}
+      className={`text-base font-semibold text-[var(--fg)] ${className}`}
       {...props}
     >
       {children}

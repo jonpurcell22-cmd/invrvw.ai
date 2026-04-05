@@ -88,7 +88,7 @@ export function ResultsGate({ sessionId }: { sessionId: string }) {
 
       <div className="relative w-full max-w-sm">
         <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--grad-start)] to-[var(--grad-end)]">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent)]">
             <span className="text-2xl font-bold text-white">
               ✓
             </span>
@@ -102,7 +102,7 @@ export function ResultsGate({ sessionId }: { sessionId: string }) {
           </p>
         </div>
 
-        <div className="mt-8 glass gradient-border rounded-2xl shadow-[var(--shadow-card)]">
+        <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)]">
           {/* Mode tabs */}
           <div className="flex border-b border-[var(--border)]">
             <button
@@ -113,7 +113,7 @@ export function ResultsGate({ sessionId }: { sessionId: string }) {
               }}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                 mode === "signup"
-                  ? "border-b-2 border-[var(--accent)] text-gradient font-semibold"
+                  ? "border-b-2 border-[var(--accent)] text-[var(--accent)] font-semibold"
                   : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
               }`}
             >
@@ -127,7 +127,7 @@ export function ResultsGate({ sessionId }: { sessionId: string }) {
               }}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                 mode === "login"
-                  ? "border-b-2 border-[var(--accent)] text-gradient font-semibold"
+                  ? "border-b-2 border-[var(--accent)] text-[var(--accent)] font-semibold"
                   : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
               }`}
             >

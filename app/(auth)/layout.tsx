@@ -8,18 +8,15 @@ export default function AuthLayout({
   return (
     <div className="flex min-h-full flex-1 flex-col bg-[var(--bg)]">
       <header className="px-6 py-6">
-        <Link href="/" className="text-sm font-bold tracking-tight">
-          <span className="text-gradient">Intrvw.ai</span>
+        <Link
+          href="/"
+          className="text-sm font-semibold tracking-tight text-[var(--fg)]"
+        >
+          intrvw<span className="text-[var(--accent)]">.ai</span>
         </Link>
       </header>
-      <div className="relative flex flex-1 flex-col items-center justify-center px-6 pb-24">
-        {/* Background gradient blobs */}
-        <div className="hero-mesh" aria-hidden="true">
-          <div className="blob" style={{ opacity: 0.15 }} />
-          <div className="blob" style={{ opacity: 0.12 }} />
-          <div className="blob" style={{ opacity: 0.1 }} />
-        </div>
-        <div className="relative w-full max-w-sm">{children}</div>
+      <div className="flex flex-1 flex-col items-center justify-center px-6 pb-24">
+        <div className="w-full max-w-sm">{children}</div>
       </div>
     </div>
   );

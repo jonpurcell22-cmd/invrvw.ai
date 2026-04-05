@@ -193,9 +193,9 @@ export function NewSessionForm() {
               <div
                 className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all ${
                   currentIdx === i
-                    ? "bg-gradient-to-r from-[var(--grad-start)] to-[var(--grad-end)] text-white shadow-[0_2px_8px_rgba(124,58,237,0.3)]"
+                    ? "bg-[var(--accent)] text-white"
                     : currentIdx > i
-                      ? "bg-gradient-to-r from-[var(--grad-start)]/20 to-[var(--grad-end)]/20 text-[var(--accent)]"
+                      ? "bg-[var(--accent-muted)] text-[var(--accent)]"
                       : "bg-[var(--surface-raised)] text-[var(--fg-subtle)]"
                 }`}
               >
@@ -211,7 +211,7 @@ export function NewSessionForm() {
 
       {/* Step 1: Resume */}
       {step === "resume" ? (
-        <div className="animate-fade-up glass gradient-border rounded-2xl p-6 shadow-[var(--shadow-card)]">
+        <div className="animate-fade-up rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
           <h2 className="text-lg font-bold text-[var(--fg)]">Your resume</h2>
           <p className="mt-1 text-sm text-[var(--fg-muted)]">
             We use your resume to personalize questions and model answers to your
@@ -309,7 +309,7 @@ export function NewSessionForm() {
 
       {/* Step 2: Job Description */}
       {step === "jd" ? (
-        <div className="animate-fade-up glass gradient-border rounded-2xl p-6 shadow-[var(--shadow-card)]">
+        <div className="animate-fade-up rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
           <h2 className="text-lg font-bold text-[var(--fg)]">
             Job description
           </h2>
@@ -436,7 +436,7 @@ export function NewSessionForm() {
 
       {/* Step 3: Quick setup */}
       {step === "details" || step === "generating" ? (
-        <div className="animate-fade-up glass gradient-border rounded-2xl p-6 shadow-[var(--shadow-card)]">
+        <div className="animate-fade-up rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
           <h2 className="text-lg font-bold text-[var(--fg)]">Quick setup</h2>
           <p className="mt-1 text-sm text-[var(--fg-muted)]">
             {extracting
@@ -506,7 +506,7 @@ export function NewSessionForm() {
           </div>
 
           {step === "generating" ? (
-            <p className="mt-6 animate-gradient rounded-xl border border-[var(--accent)]/15 bg-gradient-to-r from-violet-50 via-rose-50 to-orange-50 px-4 py-3 text-sm text-[var(--accent)]">
+            <p className="mt-6 rounded-lg border border-[var(--accent)]/20 bg-[var(--accent-muted)] px-4 py-3 text-sm text-[var(--accent)]">
               Generating your interview — this takes{" "}
               <span className="font-semibold">1–2 minutes</span> while we
               research the company and build tailored questions.

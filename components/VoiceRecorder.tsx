@@ -167,8 +167,8 @@ export function VoiceRecorder({
   };
 
   return (
-    <div className="glass gradient-border rounded-2xl p-5 shadow-[var(--shadow-card)]">
-      <div className="flex gap-1 rounded-xl bg-[var(--surface-raised)] p-1">
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
+      <div className="flex gap-1 rounded-lg bg-[var(--bg)] p-1">
         <button
           type="button"
           disabled={disabled}

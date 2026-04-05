@@ -10,56 +10,60 @@ import {
   MessageSquareText,
   TrendingUp,
   UserCheck,
+  Play,
 } from "lucide-react";
 
 const STEPS = [
   {
     icon: FileText,
+    num: "01",
     title: "Upload your materials",
-    desc: "Drop in your resume and paste a job description. Takes 30 seconds.",
+    desc: "Resume and job description. PDF, DOCX, or paste a link. Takes 30 seconds.",
   },
   {
     icon: Mic,
-    title: "Practice out loud",
-    desc: "Answer tailored questions using your mic. We record delivery and transcribe in real time.",
+    num: "02",
+    title: "Answer out loud",
+    desc: "Speak your answers using your mic. Real-time transcription and delivery tracking.",
   },
   {
     icon: Target,
-    title: "Get coached",
-    desc: "Scored feedback, a stronger version of your answer, and one thing to practice next.",
+    num: "03",
+    title: "Get your coaching report",
+    desc: "Scored feedback, a stronger version of your answer built from your background, and what to fix next.",
   },
 ];
 
 const FEATURES = [
   {
     icon: BrainCircuit,
-    title: "Personalized questions",
-    desc: "Claude researches the company, reads your resume, and generates questions you'll actually face.",
+    title: "Questions you'll actually face",
+    desc: "We research the company and read your resume. Every question is tailored to this specific interview.",
   },
   {
     icon: BarChart3,
     title: "7-dimension scoring",
-    desc: "Relevance, structure, specificity, impact, clarity, reasoning, and values — calibrated to your level.",
+    desc: "Relevance, structure, specificity, impact, clarity, reasoning, and values. Calibrated to your seniority.",
   },
   {
     icon: AudioLines,
-    title: "Speech analytics",
-    desc: "Pacing, duration, filler words. Know exactly how you sound, not just what you said.",
+    title: "Delivery analytics",
+    desc: "Speaking pace, answer duration, filler words. Understand how you sound, not just what you say.",
   },
   {
     icon: MessageSquareText,
-    title: "Answers from your background",
-    desc: "Not generic examples. Stronger versions built from your actual companies and accomplishments.",
+    title: "Your story, told better",
+    desc: "Model answers built from your real companies and accomplishments. Not generic templates.",
   },
   {
     icon: TrendingUp,
-    title: "Session trends",
-    desc: "Cross-question patterns: what you consistently do well, and the habits holding you back.",
+    title: "Pattern recognition",
+    desc: "Cross-question analysis identifies the habits that help and the ones holding you back.",
   },
   {
     icon: UserCheck,
-    title: "No signup required",
-    desc: "Start practicing immediately. Create an account only when you're ready to see results.",
+    title: "No signup to start",
+    desc: "Practice immediately. Create an account when you're ready to see your results.",
   },
 ];
 
@@ -67,15 +71,15 @@ export default function HomePage() {
   return (
     <div className="flex flex-1 flex-col">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b border-[var(--border)] glass">
+      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
-          <span className="text-sm font-bold tracking-tight">
-            <span className="text-gradient">Intrvw.ai</span>
+          <span className="text-sm font-semibold tracking-tight text-[var(--fg)]">
+            intrvw<span className="text-[var(--accent)]">.ai</span>
           </span>
-          <nav className="flex items-center gap-3">
+          <nav className="flex items-center gap-4">
             <Link
               href="/login"
-              className="cursor-pointer text-sm text-[var(--fg-muted)] transition-colors duration-200 hover:text-[var(--fg)]"
+              className="cursor-pointer text-sm text-[var(--fg-muted)] transition-colors duration-150 hover:text-[var(--fg)]"
             >
               Log in
             </Link>
@@ -87,120 +91,46 @@ export default function HomePage() {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="hero-mesh" aria-hidden="true">
-          <div className="blob" />
-          <div className="blob" />
-          <div className="blob" />
-        </div>
-
-        <div className="relative mx-auto max-w-4xl px-6 pb-32 pt-36 text-center">
+      <section className="border-b border-[var(--border)]">
+        <div className="mx-auto max-w-4xl px-6 pb-20 pt-24 text-center">
           <div className="animate-fade-up">
-            <div className="mx-auto mb-8 inline-flex items-center gap-2.5 rounded-full border border-[var(--border-strong)] bg-[var(--surface-solid)] px-4 py-1.5 text-xs font-medium text-[var(--fg-muted)] shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--success)] opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--success)]" />
-              </span>
+            <p className="text-sm font-medium text-[var(--accent)]">
               AI-powered interview coaching
-            </div>
-
-            <h1 className="text-5xl font-extrabold leading-[1.1] tracking-tight text-[var(--fg)] sm:text-6xl lg:text-7xl">
-              Stop guessing.
-              <br />
-              <span className="text-gradient">Start nailing it.</span>
-            </h1>
-
-            <p className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-[var(--fg-muted)]">
-              Upload your resume and a job description. Intrvw.ai generates the
-              questions you'll actually face, listens to your answers, and
-              coaches you with scored, personalized feedback.
             </p>
-
-            <div className="mt-12 flex flex-wrap justify-center gap-4">
+            <h1 className="mt-4 text-4xl font-bold leading-[1.15] tracking-tight text-[var(--fg)] sm:text-5xl">
+              Practice the interview you're
+              <br className="hidden sm:block" />
+              actually walking into
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[var(--fg-muted)]">
+              Upload your resume and a job description. Intrvw.ai generates
+              tailored questions, records your spoken answers, and coaches you
+              with the specificity of a hiring manager who wants you to get the offer.
+            </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button variant="primary" size="lg" href="/session/new">
                 Try it free — no signup
               </Button>
               <Button variant="secondary" size="lg" href="#how-it-works">
-                See how it works
+                How it works
               </Button>
             </div>
           </div>
 
-          {/* Preview mockup */}
+          {/* Video embed area */}
           <div
-            className="mx-auto mt-24 max-w-3xl animate-fade-up text-left"
-            style={{ animationDelay: "200ms" }}
+            className="mx-auto mt-16 max-w-3xl animate-fade-up"
+            style={{ animationDelay: "150ms" }}
           >
-            {/* Question card + score */}
-            <div className="glass gradient-border cursor-default rounded-3xl p-7 shadow-[var(--shadow-elevated)]">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--grad-start)] to-[var(--grad-end)] text-white text-xs font-bold shadow-sm">
-                      Q1
-                    </div>
-                    <span className="text-xs font-medium text-[var(--fg-muted)]">
-                      Role-Specific · Staff Engineer
-                    </span>
+            <div className="relative overflow-hidden rounded-xl border border-[var(--border-strong)] bg-[var(--surface)] shadow-[var(--shadow-elevated)]">
+              <div className="aspect-video flex items-center justify-center">
+                {/* Replace with actual video embed */}
+                <div className="flex flex-col items-center gap-3 text-[var(--fg-subtle)]">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--surface-hover)] transition-colors hover:bg-[var(--surface-raised)] cursor-pointer">
+                    <Play size={20} className="ml-0.5 text-[var(--fg-muted)]" />
                   </div>
-                  <p className="mt-4 text-base font-semibold leading-snug text-[var(--fg)] sm:text-lg">
-                    Your target company processes millions of API requests per
-                    second. Based on the event pipeline you built at your
-                    previous role, how would you design their next-gen webhook
-                    delivery system?
-                  </p>
+                  <p className="text-sm">See how it works in 2 minutes</p>
                 </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--fg-subtle)]">
-                    Score
-                  </p>
-                  <p className="text-3xl font-extrabold text-gradient">87</p>
-                </div>
-              </div>
-              <div className="mt-5 flex gap-1.5">
-                {[85, 70, 45].map((w, i) => (
-                  <div
-                    key={i}
-                    className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--surface-raised)]"
-                  >
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[var(--grad-start)] via-[var(--grad-mid)] to-[var(--grad-end)]"
-                      style={{ width: `${w}%` }}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Feedback cards row */}
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {/* What worked */}
-              <div className="glass gradient-border cursor-default rounded-2xl p-5 shadow-[var(--shadow-card)]">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-[var(--success)]" />
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--success)]">
-                    What worked
-                  </p>
-                </div>
-                <p className="mt-2.5 text-sm leading-relaxed text-[var(--fg-muted)]">
-                  You anchored your answer in your pipeline's 50K events/sec
-                  throughput — that kind of specific credibility is exactly
-                  what interviewers at this level look for.
-                </p>
-              </div>
-
-              {/* What needs improvement */}
-              <div className="glass gradient-border cursor-default rounded-2xl p-5 shadow-[var(--shadow-card)]">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-[var(--warning)]" />
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--warning)]">
-                    What to improve
-                  </p>
-                </div>
-                <p className="mt-2.5 text-sm leading-relaxed text-[var(--fg-muted)]">
-                  Connect your past experience to their scale — explain why
-                  your approach handles 10x more volume, not just how.
-                </p>
               </div>
             </div>
           </div>
@@ -208,35 +138,32 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section
-        id="how-it-works"
-        className="border-t border-[var(--border)] bg-[var(--bg-secondary)]"
-      >
-        <div className="mx-auto max-w-5xl px-6 py-28">
+      <section id="how-it-works" className="border-b border-[var(--border)]">
+        <div className="mx-auto max-w-5xl px-6 py-24">
           <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gradient">
-              How it works
+            <p className="text-sm font-medium text-[var(--accent)]">
+              Three steps
             </p>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">
+            <h2 className="mt-3 text-2xl font-bold tracking-tight text-[var(--fg)] sm:text-3xl">
               Ready in under 3 minutes
             </h2>
           </div>
 
-          <div className="stagger-children mt-20 grid gap-8 sm:grid-cols-3">
-            {STEPS.map((s, i) => {
+          <div className="stagger-children mt-16 grid gap-px overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--border)] sm:grid-cols-3">
+            {STEPS.map((s) => {
               const Icon = s.icon;
               return (
                 <div
-                  key={i}
-                  className="gradient-border glass cursor-default rounded-2xl p-7 shadow-[var(--shadow-card)] transition-all duration-250 hover:shadow-[var(--shadow-glow)] hover:-translate-y-1"
+                  key={s.num}
+                  className="bg-[var(--surface)] p-8 transition-colors duration-150 hover:bg-[var(--surface-hover)]"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--grad-start)] to-[var(--grad-end)] text-white shadow-sm">
-                    <Icon size={20} strokeWidth={2} />
+                  <div className="flex items-center gap-3">
+                    <Icon size={16} className="text-[var(--accent)]" />
+                    <span className="font-mono text-xs text-[var(--fg-subtle)]">
+                      {s.num}
+                    </span>
                   </div>
-                  <span className="mt-4 block font-mono text-xs font-semibold text-gradient">
-                    Step {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <h3 className="mt-2 text-base font-semibold text-[var(--fg)]">
+                  <h3 className="mt-4 text-sm font-semibold text-[var(--fg)]">
                     {s.title}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--fg-muted)]">
@@ -250,33 +177,31 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="border-t border-[var(--border)]">
-        <div className="mx-auto max-w-5xl px-6 py-28">
+      <section className="border-b border-[var(--border)]">
+        <div className="mx-auto max-w-5xl px-6 py-24">
           <div className="text-center">
-            <p className="text-sm font-semibold uppercase tracking-widest text-gradient">
+            <p className="text-sm font-medium text-[var(--accent)]">
               What you get
             </p>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">
-              Coaching that changes how you interview
+            <h2 className="mt-3 text-2xl font-bold tracking-tight text-[var(--fg)] sm:text-3xl">
+              Coaching that changes your outcome
             </h2>
+            <p className="mx-auto mt-3 max-w-xl text-sm text-[var(--fg-muted)]">
+              The difference between a good interview and a great one can be
+              tens of thousands of dollars. Intrvw.ai helps you close that gap.
+            </p>
           </div>
 
-          <div className="stagger-children mt-20 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="stagger-children mt-16 grid gap-px overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--border)] sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f) => {
               const Icon = f.icon;
               return (
                 <div
                   key={f.title}
-                  className="glass gradient-border cursor-default rounded-2xl p-7 shadow-[var(--shadow-card)] transition-all duration-250 hover:shadow-[var(--shadow-glow)] hover:-translate-y-1"
+                  className="bg-[var(--surface)] p-7 transition-colors duration-150 hover:bg-[var(--surface-hover)]"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--surface-raised)]">
-                    <Icon
-                      size={18}
-                      strokeWidth={2}
-                      className="text-[var(--accent)]"
-                    />
-                  </div>
-                  <h3 className="mt-4 text-sm font-semibold text-[var(--fg)]">
+                  <Icon size={16} className="text-[var(--accent)]" />
+                  <h3 className="mt-3 text-sm font-semibold text-[var(--fg)]">
                     {f.title}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--fg-muted)]">
@@ -290,38 +215,26 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="relative overflow-hidden border-t border-[var(--border)]">
-        <div className="hero-mesh" aria-hidden="true">
-          <div className="blob" style={{ opacity: 0.2 }} />
-          <div className="blob" style={{ opacity: 0.15 }} />
-          <div className="blob" style={{ opacity: 0.12 }} />
-        </div>
-        <div className="relative mx-auto max-w-3xl px-6 py-28 text-center">
-          <h2 className="text-3xl font-bold tracking-tight text-[var(--fg)] sm:text-4xl">
-            Your next interview
-            <br />
-            <span className="text-gradient">deserves real prep.</span>
+      <section className="border-b border-[var(--border)]">
+        <div className="mx-auto max-w-2xl px-6 py-24 text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-[var(--fg)] sm:text-3xl">
+            Your next interview is worth preparing for
           </h2>
-          <p className="mt-5 text-sm leading-relaxed text-[var(--fg-muted)]">
+          <p className="mt-4 text-sm text-[var(--fg-muted)]">
             Free during early access. No signup needed to start.
           </p>
-          <Button
-            variant="primary"
-            size="lg"
-            href="/session/new"
-            className="mt-10"
-          >
+          <Button variant="primary" size="lg" href="/session/new" className="mt-8">
             Start practicing now
           </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[var(--border)] py-10">
+      <footer className="py-8">
         <div className="mx-auto max-w-6xl px-6">
           <p className="text-center text-xs text-[var(--fg-subtle)]">
-            <span className="text-gradient font-semibold">Intrvw.ai</span>
-            {" — "}AI-powered interview coaching.
+            intrvw<span className="text-[var(--accent)]">.ai</span>
+            {" — "}AI-powered interview coaching
           </p>
         </div>
       </footer>

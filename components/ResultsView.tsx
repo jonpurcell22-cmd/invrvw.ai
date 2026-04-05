@@ -141,7 +141,7 @@ function QuestionResult({ row }: { row: ResultRow }) {
   }
 
   return (
-    <details className="group glass gradient-border rounded-2xl shadow-[var(--shadow-card)] transition-all duration-200 open:shadow-[var(--shadow-elevated)]">
+    <details className="group rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-card)] transition-all duration-200 open:shadow-[var(--shadow-elevated)]">
       <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden">
         <div className="min-w-0 flex-1">
           <span className="text-sm font-medium leading-snug text-[var(--fg)]">
@@ -231,8 +231,8 @@ function QuestionResult({ row }: { row: ResultRow }) {
 
         {/* Stronger version */}
         {model.strongerVersion ? (
-          <div className="rounded-xl border border-[var(--accent)]/10 bg-gradient-to-br from-violet-50 to-orange-50 px-4 py-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gradient">
+          <div className="rounded-lg border border-[var(--accent)]/15 bg-[var(--accent-muted)] px-4 py-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">
               Stronger version
             </h3>
             <div className="mt-3 space-y-2.5">
@@ -248,8 +248,8 @@ function QuestionResult({ row }: { row: ResultRow }) {
           </div>
         ) : row.modelAnswer && !model.callback ? (
           /* Fallback for old-format model answers without 4-part structure */
-          <div className="rounded-xl border border-[var(--accent)]/10 bg-gradient-to-br from-violet-50 to-orange-50 px-4 py-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gradient">
+          <div className="rounded-lg border border-[var(--accent)]/15 bg-[var(--accent-muted)] px-4 py-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">
               Stronger version
             </h3>
             <div className="mt-3 space-y-2.5">
@@ -295,7 +295,7 @@ function QuestionResult({ row }: { row: ResultRow }) {
                       <span className="font-medium text-[var(--fg)]">
                         {DIMENSION_LABELS[k] ?? k.replace(/_/g, " ")}
                       </span>
-                      <span className="font-mono text-xs text-gradient">
+                      <span className="font-mono text-xs text-[var(--accent)]">
                         {v.score}/5
                       </span>
                     </div>
@@ -378,7 +378,7 @@ export function ResultsView({
         </p>
         <div className="mt-8">
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-5xl font-bold tracking-tight text-gradient">
+            <span className="font-mono text-5xl font-bold tracking-tight text-[var(--accent)]">
               {overallScore}
             </span>
             <div className="space-y-0.5">

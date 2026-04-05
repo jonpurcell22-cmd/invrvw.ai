@@ -17,38 +17,38 @@ export default async function AppLayout({
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <header className="sticky top-0 z-10 border-b border-[var(--border)] glass">
+      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-6">
           <div className="flex items-center gap-8">
             <Link
               href={isAnonymous ? "/" : "/dashboard"}
-              className="text-sm font-bold tracking-tight"
+              className="text-sm font-semibold tracking-tight text-[var(--fg)]"
             >
-              <span className="text-gradient">Intrvw.ai</span>
+              intrvw<span className="text-[var(--accent)]">.ai</span>
             </Link>
             {!isAnonymous ? (
               <nav className="hidden items-center gap-6 text-sm text-[var(--fg-muted)] sm:flex">
                 <Link
                   href="/dashboard"
-                  className="transition-colors hover:text-[var(--fg)]"
+                  className="transition-colors duration-150 hover:text-[var(--fg)]"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/session/new"
-                  className="transition-colors hover:text-[var(--fg)]"
+                  className="transition-colors duration-150 hover:text-[var(--fg)]"
                 >
                   New session
                 </Link>
               </nav>
             ) : null}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {isAnonymous ? (
               <>
                 <Link
                   href="/login"
-                  className="text-sm text-[var(--fg-muted)] transition-colors hover:text-[var(--fg)]"
+                  className="text-sm text-[var(--fg-muted)] transition-colors duration-150 hover:text-[var(--fg)]"
                 >
                   Log in
                 </Link>

@@ -8,26 +8,26 @@ export default function AdminLayout({
 }) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <header className="sticky top-0 z-10 border-b border-[var(--border)] glass">
+      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between gap-4 px-6">
           <div className="flex items-center gap-8">
             <Link
               href="/admin"
-              className="text-sm font-bold tracking-tight text-[var(--fg)]"
+              className="text-sm font-semibold tracking-tight text-[var(--fg)]"
             >
-              <span className="text-gradient">Intrvw.ai</span>{" "}
-              <span className="font-normal text-[var(--fg-subtle)]">Admin</span>
+              intrvw<span className="text-[var(--accent)]">.ai</span>{" "}
+              <span className="font-normal text-[var(--fg-subtle)]">admin</span>
             </Link>
             <nav className="hidden items-center gap-6 text-sm text-[var(--fg-muted)] sm:flex">
               <Link
                 href="/admin"
-                className="transition-colors hover:text-[var(--fg)]"
+                className="transition-colors duration-150 hover:text-[var(--fg)]"
               >
                 Users
               </Link>
               <Link
                 href="/dashboard"
-                className="transition-colors hover:text-[var(--fg)]"
+                className="transition-colors duration-150 hover:text-[var(--fg)]"
               >
                 App
               </Link>

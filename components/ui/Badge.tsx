@@ -6,10 +6,10 @@ const toneClass: Record<Tone, string> = {
   neutral:
     "bg-[var(--surface-raised)] text-[var(--fg-muted)] border-[var(--border-strong)]",
   success:
-    "bg-[var(--success-muted)] text-emerald-700 border-emerald-200",
+    "bg-[var(--success-muted)] text-[var(--success)] border-[var(--success)]/20",
   warning:
-    "bg-[var(--warning-muted)] text-amber-700 border-amber-200",
-  info: "bg-[var(--info-muted)] text-blue-700 border-blue-200",
+    "bg-[var(--warning-muted)] text-[var(--warning)] border-[var(--warning)]/20",
+  info: "bg-[var(--info-muted)] text-[var(--info)] border-[var(--info)]/20",
   muted:
     "bg-transparent text-[var(--fg-subtle)] border-[var(--border)]",
 };
@@ -22,7 +22,7 @@ export function Badge({
 }: HTMLAttributes<HTMLSpanElement> & { tone?: Tone; children: ReactNode }) {
   return (
     <span
-      className={`inline-flex items-center rounded-lg border px-2.5 py-0.5 text-xs font-medium ${toneClass[tone]} ${className}`}
+      className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${toneClass[tone]} ${className}`}
       {...props}
     >
       {children}

@@ -19,19 +19,19 @@ export type ButtonProps = Shared &
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-gradient-to-r from-[var(--grad-start)] via-[var(--grad-mid)] to-[var(--grad-end)] text-white font-semibold shadow-[0_2px_12px_rgba(124,58,237,0.25),0_1px_3px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_20px_rgba(124,58,237,0.35),0_2px_6px_rgba(0,0,0,0.1)] hover:brightness-110 border border-white/20 active:scale-[0.97]",
+    "bg-[var(--accent)] text-white font-medium hover:bg-[var(--accent-hover)] border border-[var(--accent)] active:scale-[0.98] shadow-[0_1px_12px_rgba(59,130,246,0.2)]",
   secondary:
-    "bg-[var(--surface-solid)] text-[var(--fg)] border border-[var(--border-strong)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elevated)] hover:border-[var(--fg-subtle)]/20 active:scale-[0.97]",
+    "bg-[var(--surface)] text-[var(--fg)] border border-[var(--border-strong)] hover:bg-[var(--surface-hover)] hover:border-[var(--fg-subtle)]/30 active:scale-[0.98]",
   ghost:
-    "bg-transparent text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-black/[0.04] border border-transparent active:scale-[0.97]",
+    "bg-transparent text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--surface-hover)] border border-transparent active:scale-[0.98]",
   danger:
-    "bg-[var(--danger)] text-white font-semibold shadow-[0_2px_12px_rgba(239,68,68,0.25)] hover:brightness-110 border border-white/20 active:scale-[0.97]",
+    "bg-[var(--danger)] text-white font-medium hover:brightness-110 border border-[var(--danger)] active:scale-[0.98]",
 };
 
 const sizeClass: Record<Size, string> = {
-  sm: "h-8 px-3.5 text-xs gap-1.5 rounded-xl",
-  md: "h-10 px-5 text-sm gap-2 rounded-xl",
-  lg: "h-12 px-6 text-sm gap-2 rounded-2xl",
+  sm: "h-8 px-3 text-xs gap-1.5 rounded-lg",
+  md: "h-9 px-4 text-sm gap-2 rounded-lg",
+  lg: "h-10 px-5 text-sm gap-2 rounded-lg",
 };
 
 export function Button(props: ButtonProps) {
@@ -41,7 +41,7 @@ export function Button(props: ButtonProps) {
     className = "",
     children,
   } = props;
-  const classes = `inline-flex items-center justify-center font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:pointer-events-none disabled:opacity-40 ${variantClass[variant]} ${sizeClass[size]} ${className}`;
+  const classes = `inline-flex items-center justify-center font-medium transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bg)] disabled:pointer-events-none disabled:opacity-40 ${variantClass[variant]} ${sizeClass[size]} ${className}`;
 
   if ("href" in props && props.href) {
     return (
