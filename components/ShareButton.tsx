@@ -84,10 +84,10 @@ export function ShareButton() {
   }
 
   return (
-    <div className="relative hidden sm:block" ref={panelRef}>
+    <div className="relative" ref={panelRef}>
       {/* Dropdown panel */}
       {open ? (
-        <div className="absolute right-0 top-full mt-2 w-80 animate-fade-in rounded-xl border border-[var(--border-strong)] bg-[var(--surface-solid)] p-4 shadow-[var(--shadow-elevated)] z-50">
+        <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-80 animate-fade-in rounded-xl border border-[var(--border-strong)] bg-[var(--surface-solid)] p-4 shadow-[var(--shadow-elevated)] z-50">
           {sent ? (
             <div className="flex items-center gap-2 py-2 text-sm text-[var(--success)]">
               <Check size={16} />
@@ -149,11 +149,11 @@ export function ShareButton() {
           setOpen(!open);
           setSent(false);
         }}
-        className="flex h-9 min-h-[44px] cursor-pointer items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3.5 text-xs font-medium text-white transition-colors hover:bg-[var(--accent-hover)]"
+        className="flex h-9 min-h-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-2.5 text-xs font-medium text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] sm:px-3.5"
         aria-label="Invite a friend to Intrvw.ai"
       >
-        <Gift size={13} />
-        <span>Invite a friend</span>
+        <Gift size={14} />
+        <span className="hidden sm:inline">Invite a friend</span>
       </button>
     </div>
   );

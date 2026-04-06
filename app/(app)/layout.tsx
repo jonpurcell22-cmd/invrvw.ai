@@ -44,25 +44,23 @@ export default async function AppLayout({
               </nav>
             ) : null}
           </div>
-          <div className="flex items-center gap-3">
-            <ShareButton />
+          <div className="flex items-center gap-2 sm:gap-3">
             {isAnonymous ? (
               <>
-                <Link
-                  href="/login"
-                  className="text-sm text-[var(--fg-muted)] transition-colors duration-150 hover:text-[var(--fg)]"
-                >
+                <ShareButton />
+                <Button variant="secondary" size="sm" href="/login">
                   Log in
-                </Link>
+                </Button>
                 <Button variant="primary" size="sm" href="/signup">
                   Sign up
                 </Button>
               </>
             ) : (
               <>
+                <ShareButton />
                 <LogoutButton />
                 <Button variant="primary" size="sm" href="/session/new">
-                  Practice
+                  New session
                 </Button>
               </>
             )}
