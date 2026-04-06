@@ -6,6 +6,7 @@ import {
 import { INTERVIEW_STAGES } from "@/lib/constants";
 import { parseDocumentBuffer } from "@/lib/docParser";
 import { ensureUser } from "@/lib/ensure-user";
+import { rateLimit } from "@/lib/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -29,6 +30,16 @@ function rubricToJsonb(q: GeneratedQuestion) {
 
 export async function POST(request: Request) {
   try {
+    // Rate limit: 5 session creations per hour per IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    const { allowed } = rateLimit(ip, { limit: 5, windowMs: 60 * 60 * 1000 });
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many sessions created. Please try again later." },
+        { status: 429 },
+      );
+    }
+
     const supabase = await createSupabaseServerClient();
     const user = await ensureUser(supabase);
 

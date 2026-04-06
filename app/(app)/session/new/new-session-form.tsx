@@ -514,13 +514,19 @@ export function NewSessionForm() {
           ) : null}
 
           {error ? (
-            <p
+            <div
               ref={errorRef}
-              className="mt-4 text-sm text-[var(--danger)]"
+              className="mt-4 rounded-lg border border-[var(--danger)]/20 bg-[var(--danger-muted)] px-4 py-3"
               role="alert"
             >
-              {error}
-            </p>
+              <p className="text-sm font-medium text-[var(--danger)]">
+                {error}
+              </p>
+              <p className="mt-1 text-xs text-[var(--fg-muted)]">
+                Your resume and job description are saved — hit
+                &quot;Generate questions&quot; to try again.
+              </p>
+            </div>
           ) : null}
 
           <div className="mt-6 flex justify-between gap-3">

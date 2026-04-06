@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { scoreAnswerWithClaude } from "@/lib/claude-score-response";
 import { generateSessionSummary } from "@/lib/claude-session-summary";
 import { ensureUser } from "@/lib/ensure-user";
+import { rateLimit } from "@/lib/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -9,6 +10,16 @@ export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
+    // Rate limit: 30 answer submissions per hour per IP
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+    const { allowed } = rateLimit(ip, { limit: 30, windowMs: 60 * 60 * 1000 });
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429 },
+      );
+    }
+
     const supabase = await createSupabaseServerClient();
     const user = await ensureUser(supabase);
     if (!user) {
