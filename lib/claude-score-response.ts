@@ -59,6 +59,9 @@ export async function scoreAnswerWithClaude(input: {
     durationSec?: number | null;
     wordCount?: number | null;
     wordsPerMinute?: number | null;
+    fillerCount?: number | null;
+    fillersPerMinute?: number | null;
+    fillerBreakdown?: { word: string; count: number }[] | null;
   } | null;
 }): Promise<ScoreAnswerResult> {
   const client = createAnthropicClient();
@@ -177,12 +180,17 @@ ANTI-SYCOPHANCY RULES:
 
 Respond with JSON only — no markdown, no preamble.`;
 
+  const fillerDetail = input.speechMeta?.fillerBreakdown?.length
+    ? `\n- Filler words detected: ${input.speechMeta.fillerCount} total (${input.speechMeta.fillerBreakdown.map((f) => `"${f.word}" x${f.count}`).join(", ")})` +
+      (input.speechMeta.fillersPerMinute != null ? `\n- Filler rate: ${input.speechMeta.fillersPerMinute} per minute (ideal: under 3 per minute)` : "")
+    : "";
+
   const speechSection = input.speechMeta
     ? `\n\nSpeech delivery metadata (from audio recording):
-- Answer duration: ${input.speechMeta.durationSec ? `${input.speechMeta.durationSec} seconds` : "unknown"}
+- Answer duration: ${input.speechMeta.durationSec ? `${input.speechMeta.durationSec} seconds (ideal: 60-180 seconds)` : "unknown"}
 - Word count: ${input.speechMeta.wordCount ?? "unknown"}
-- Speaking pace: ${input.speechMeta.wordsPerMinute ? `${input.speechMeta.wordsPerMinute} words per minute (ideal range: 130-160 WPM for interviews)` : "unknown"}
-Use this data when scoring Communication Clarity. Note if the answer was too short (<30 sec), too long (>4 min), too fast (>180 WPM), or too slow (<100 WPM). Factor filler words visible in the transcript (um, uh, like, you know, sort of, kind of) into your Communication Clarity score and feedback.`
+- Speaking pace: ${input.speechMeta.wordsPerMinute ? `${input.speechMeta.wordsPerMinute} words per minute (ideal: 130-160 WPM)` : "unknown"}${fillerDetail}
+Use ALL delivery data when scoring Communication Clarity. Specifically address: pace (too fast/slow?), filler word frequency (problematic if >5 per minute), and answer length (too short if <30s, too long if >4min). Include specific delivery feedback in the Communication Clarity dimension.`
     : "";
 
   const resumeSection = input.resumeText

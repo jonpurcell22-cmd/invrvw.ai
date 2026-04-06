@@ -75,9 +75,16 @@ export default async function DashboardPage() {
               : "No sessions yet. Start your first practice session to get personalized interview coaching."}
           </p>
         </div>
-        <Button variant="primary" href="/session/new">
-          New session
-        </Button>
+        <div className="flex gap-3">
+          {completedScores.length >= 2 ? (
+            <Button variant="secondary" href="/dashboard/progress">
+              View progress
+            </Button>
+          ) : null}
+          <Button variant="primary" href="/session/new">
+            New session
+          </Button>
+        </div>
       </div>
 
       {/* Score trend bar */}

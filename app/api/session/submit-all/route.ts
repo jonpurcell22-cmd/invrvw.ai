@@ -15,6 +15,9 @@ type AnswerPayload = {
     durationSec?: number | null;
     wordCount?: number | null;
     wordsPerMinute?: number | null;
+    fillerCount?: number | null;
+    fillersPerMinute?: number | null;
+    fillerBreakdown?: { word: string; count: number }[] | null;
   } | null;
 };
 

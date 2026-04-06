@@ -8,6 +8,7 @@ import type { AudioRecording } from "@/lib/audio";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { analyzeDelivery } from "@/lib/delivery-analysis";
 import { Loader2 } from "lucide-react";
 
 export type PracticeQuestionRow = {
@@ -24,6 +25,9 @@ type SavedAnswer = {
     durationSec: number | null;
     wordCount: number;
     wordsPerMinute: number | null;
+    fillerCount: number;
+    fillersPerMinute: number | null;
+    fillerBreakdown: { word: string; count: number }[];
   };
 };
 
@@ -64,20 +68,21 @@ export function SessionQuestionPractice({
     const t = transcript.trim();
     if (!t) return null;
 
-    const wordCount = t.split(/\s+/).filter(Boolean).length;
     const durationSec = audioRef.current?.durationSec ?? null;
-    const wordsPerMinute =
-      durationSec && durationSec > 0
-        ? Math.round((wordCount / durationSec) * 60)
-        : null;
+    const delivery = analyzeDelivery(t, {
+      durationSec: durationSec ? Math.round(durationSec) : null,
+    });
 
     const answer: SavedAnswer = {
       questionId: current.id,
       transcript: t,
       speechMeta: {
         durationSec: durationSec ? Math.round(durationSec) : null,
-        wordCount,
-        wordsPerMinute,
+        wordCount: delivery.wordCount,
+        wordsPerMinute: delivery.wordsPerMinute,
+        fillerCount: delivery.fillerCount,
+        fillersPerMinute: delivery.fillersPerMinute,
+        fillerBreakdown: delivery.fillerBreakdown,
       },
     };
 
@@ -277,6 +282,9 @@ export function SessionQuestionPractice({
                     durationSec: 90,
                     wordCount: 85,
                     wordsPerMinute: 140,
+                    fillerCount: 3,
+                    fillersPerMinute: 2.0,
+                    fillerBreakdown: [{ word: "um", count: 2 }, { word: "like", count: 1 }],
                   },
                 }));
                 setAnswers(dummyAnswers);
