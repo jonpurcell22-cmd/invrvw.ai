@@ -8,6 +8,7 @@ export function ShareButton() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -40,18 +41,30 @@ export function ShareButton() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: trimmed, senderName: "A friend" }),
       });
-      const data = (await res.json()) as { mailto?: string };
+      const data = (await res.json()) as {
+        sent?: boolean;
+        mailto?: string;
+        error?: string;
+      };
 
-      if (data.mailto) {
+      if (data.error) {
+        setError(data.error);
+        setSending(false);
+        return;
+      }
+
+      // If server couldn't send (no Resend key), fall back to mailto
+      if (data.mailto && !data.sent) {
         window.open(data.mailto, "_blank");
       }
 
       setSent(true);
       setEmail("");
+      setError(null);
       setTimeout(() => {
         setOpen(false);
         setSent(false);
-      }, 2000);
+      }, 2500);
     } catch {
       // Non-critical
     } finally {
@@ -71,7 +84,7 @@ export function ShareButton() {
   }
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative hidden sm:block" ref={panelRef}>
       {/* Dropdown panel */}
       {open ? (
         <div className="absolute right-0 top-full mt-2 w-80 animate-fade-in rounded-xl border border-[var(--border-strong)] bg-[var(--surface-solid)] p-4 shadow-[var(--shadow-elevated)] z-50">
@@ -121,6 +134,9 @@ export function ShareButton() {
                   Send
                 </button>
               </div>
+              {error ? (
+                <p className="mt-2 text-xs text-[var(--danger)]">{error}</p>
+              ) : null}
             </>
           )}
         </div>

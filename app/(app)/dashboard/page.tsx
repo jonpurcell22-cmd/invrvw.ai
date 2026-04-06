@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import type { Session } from "@/types";
+import { RetrySessionButton } from "@/components/RetrySessionButton";
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
 function formatStatus(status: string): string {
   return status.replace(/_/g, " ");
@@ -18,13 +20,6 @@ const statusTone: Record<string, "neutral" | "success" | "warning" | "info" | "m
   completed: "success",
   archived: "neutral",
 };
-
-function scoreColor(score: number): string {
-  if (score >= 75) return "text-[var(--success)]";
-  if (score >= 50) return "text-[var(--info)]";
-  if (score >= 25) return "text-[var(--warning)]";
-  return "text-[var(--danger)]";
-}
 
 export default async function DashboardPage() {
   const supabase = await createSupabaseServerClient();
@@ -52,6 +47,21 @@ export default async function DashboardPage() {
     overall_score: number | null;
   }[];
 
+  // Score trend — completed sessions in chronological order
+  const completedScores = rows
+    .filter((s) => s.status === "completed" && s.overall_score != null)
+    .reverse()
+    .map((s) => s.overall_score as number);
+
+  const hasScores = completedScores.length >= 1;
+  const avgScore = hasScores
+    ? Math.round(completedScores.reduce((a, b) => a + b, 0) / completedScores.length)
+    : null;
+  const trend =
+    completedScores.length >= 2
+      ? completedScores[completedScores.length - 1] - completedScores[completedScores.length - 2]
+      : null;
+
   return (
     <main className="mx-auto w-full max-w-6xl px-6 py-12">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
@@ -70,7 +80,71 @@ export default async function DashboardPage() {
         </Button>
       </div>
 
-      <section className="mt-12">
+      {/* Score trend bar */}
+      {hasScores ? (
+        <section className="mt-8 animate-fade-up rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)]">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            {/* Avg score */}
+            <div className="flex items-center gap-4">
+              <div>
+                <p className="text-xs font-medium text-[var(--fg-subtle)]">
+                  Average score
+                </p>
+                <p className="mt-0.5 font-mono text-2xl font-bold text-[var(--fg)]">
+                  {avgScore}
+                  <span className="text-sm font-normal text-[var(--fg-subtle)]">
+                    /100
+                  </span>
+                </p>
+              </div>
+              {trend !== null ? (
+                <div
+                  className={`flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${
+                    trend > 0
+                      ? "bg-[var(--success-muted)] text-[var(--success)]"
+                      : trend < 0
+                        ? "bg-[var(--danger-muted)] text-[var(--danger)]"
+                        : "bg-[var(--surface-raised)] text-[var(--fg-subtle)]"
+                  }`}
+                >
+                  {trend > 0 ? (
+                    <TrendingUp size={12} />
+                  ) : trend < 0 ? (
+                    <TrendingDown size={12} />
+                  ) : (
+                    <Minus size={12} />
+                  )}
+                  {trend > 0 ? "+" : ""}
+                  {trend} pts
+                </div>
+              ) : null}
+            </div>
+
+            {/* Score sparkline */}
+            {completedScores.length >= 2 ? (
+              <div className="flex items-end gap-1 h-10">
+                {completedScores.map((score, i) => (
+                  <div
+                    key={i}
+                    className="w-6 rounded-sm bg-[var(--accent)] transition-all"
+                    style={{
+                      height: `${Math.max(8, (score / 100) * 40)}px`,
+                      opacity: i === completedScores.length - 1 ? 1 : 0.4,
+                    }}
+                    title={`Session ${i + 1}: ${score}/100`}
+                  />
+                ))}
+              </div>
+            ) : null}
+
+            <div className="text-xs text-[var(--fg-subtle)]">
+              {completedScores.length} completed session{completedScores.length !== 1 ? "s" : ""}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="mt-8">
         <h2 className="sr-only">Your sessions</h2>
         {rows.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-strong)] bg-[var(--surface)] px-6 py-16 text-center">
@@ -99,7 +173,7 @@ export default async function DashboardPage() {
                 <li key={s.id}>
                   <Link
                     href={href}
-                    className="group relative block rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)] transition-all duration-150 hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
+                    className="group relative block cursor-pointer rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow-card)] transition-all duration-150 hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
@@ -116,13 +190,18 @@ export default async function DashboardPage() {
                     </div>
                     <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs text-[var(--fg-subtle)]">
                       <span>{date}</span>
-                      {s.overall_score != null ? (
-                        <span className={`font-mono font-medium text-[var(--accent)]`}>
-                          {s.overall_score}/100
-                        </span>
-                      ) : (
-                        <span>—</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {s.status === "completed" ? (
+                          <RetrySessionButton sessionId={s.id} />
+                        ) : null}
+                        {s.overall_score != null ? (
+                          <span className="font-mono font-medium text-[var(--accent)]">
+                            {s.overall_score}/100
+                          </span>
+                        ) : (
+                          <span>—</span>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 </li>

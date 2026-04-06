@@ -233,10 +233,26 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-8">
         <div className="mx-auto max-w-6xl px-6">
-          <p className="text-center text-xs text-[var(--fg-subtle)]">
-            intrvw<span className="text-[var(--accent)]">.ai</span>
-            {" — "}AI-powered interview coaching
-          </p>
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+            <p className="text-xs text-[var(--fg-subtle)]">
+              intrvw<span className="text-[var(--accent)]">.ai</span>
+              {" — "}AI-powered interview coaching
+            </p>
+            <div className="flex gap-4 text-xs text-[var(--fg-subtle)]">
+              <Link
+                href="/terms"
+                className="transition-colors hover:text-[var(--fg-muted)]"
+              >
+                Terms
+              </Link>
+              <Link
+                href="/privacy"
+                className="transition-colors hover:text-[var(--fg-muted)]"
+              >
+                Privacy
+              </Link>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
