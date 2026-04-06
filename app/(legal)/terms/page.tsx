@@ -8,7 +8,7 @@ export default function TermsPage() {
         Last updated: April 2026
       </p>
 
-      <div className="mt-10 space-y-8 text-sm leading-relaxed text-[var(--fg-muted)]">
+      <div className="mt-10 space-y-8 text-[15px] leading-relaxed text-[var(--fg-muted)]">
         <section>
           <h2 className="text-base font-semibold text-[var(--fg)]">
             1. Acceptance of Terms

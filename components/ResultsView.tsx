@@ -160,11 +160,11 @@ function QuestionResult({ row }: { row: ResultRow }) {
 
         {/* Score bar + quick dimension overview */}
         {dims ? (
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-7 sm:gap-1.5">
             {Object.entries(dims).map(([k, v]) => (
               <div key={k} className="space-y-1">
                 <DimensionBar score={v.score} />
-                <p className="text-center text-[10px] leading-tight text-[var(--fg-subtle)]">
+                <p className="text-center text-[11px] leading-tight text-[var(--fg-subtle)]">
                   {DIMENSION_LABELS[k] ?? k}
                 </p>
               </div>
@@ -378,7 +378,7 @@ export function ResultsView({
         </p>
         <div className="mt-8">
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-5xl font-bold tracking-tight text-[var(--accent)]">
+            <span className="font-mono text-4xl font-bold tracking-tight text-[var(--accent)] sm:text-5xl">
               {overallScore}
             </span>
             <div className="space-y-0.5">

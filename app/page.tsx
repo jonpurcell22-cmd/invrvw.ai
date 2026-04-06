@@ -98,7 +98,7 @@ export default function HomePage() {
             <p className="text-sm font-medium text-[var(--accent)]">
               AI-powered interview coaching
             </p>
-            <h1 className="mt-4 text-4xl font-bold leading-[1.15] tracking-tight text-[var(--fg)] sm:text-5xl">
+            <h1 className="mt-4 text-3xl font-bold leading-[1.15] tracking-tight text-[var(--fg)] sm:text-4xl lg:text-5xl">
               Practice the interview you're
               <br className="hidden sm:block" />
               actually walking into

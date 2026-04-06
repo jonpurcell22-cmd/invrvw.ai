@@ -173,7 +173,7 @@ export function VoiceRecorder({
           type="button"
           disabled={disabled}
           onClick={() => setTab("record")}
-          className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${
+          className={`flex-1 rounded-md px-3 py-2.5 text-sm min-h-[44px] font-medium transition-all duration-200 ${
             tab === "record"
               ? "bg-[var(--surface-hover)] text-[var(--fg)] shadow-sm"
               : "text-[var(--fg-subtle)] hover:text-[var(--fg-muted)]"
@@ -185,7 +185,7 @@ export function VoiceRecorder({
           type="button"
           disabled={disabled}
           onClick={() => setTab("upload")}
-          className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${
+          className={`flex-1 rounded-md px-3 py-2.5 text-sm min-h-[44px] font-medium transition-all duration-200 ${
             tab === "upload"
               ? "bg-[var(--surface-hover)] text-[var(--fg)] shadow-sm"
               : "text-[var(--fg-subtle)] hover:text-[var(--fg-muted)]"
@@ -274,7 +274,7 @@ export function VoiceRecorder({
                 accept=".mp3,.m4a,.wav,.webm,audio/mpeg,audio/mp4,audio/x-m4a,audio/wav,audio/webm"
                 disabled={disabled || uploadBusy}
                 onChange={handleFile}
-                className="block w-full text-sm text-[var(--fg-muted)] file:mr-3 file:rounded-lg file:border file:border-[var(--border)] file:bg-[var(--surface-hover)] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-[var(--fg)]"
+                className="block w-full text-sm text-[var(--fg-muted)] file:mr-3 file:rounded-lg file:border file:border-[var(--border)] file:bg-[var(--surface-hover)] file:px-4 file:py-2.5 file:text-sm file:font-medium file:text-[var(--fg)] file:min-h-[44px]"
               />
             </label>
             {uploadError ? (

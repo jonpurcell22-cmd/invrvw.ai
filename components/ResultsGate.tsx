@@ -111,7 +111,7 @@ export function ResultsGate({ sessionId }: { sessionId: string }) {
                 setMode("signup");
                 setError(null);
               }}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 py-3.5 text-sm min-h-[44px] font-medium transition-colors ${
                 mode === "signup"
                   ? "border-b-2 border-[var(--accent)] text-[var(--accent)] font-semibold"
                   : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
@@ -125,7 +125,7 @@ export function ResultsGate({ sessionId }: { sessionId: string }) {
                 setMode("login");
                 setError(null);
               }}
-              className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+              className={`flex-1 px-4 py-3.5 text-sm min-h-[44px] font-medium transition-colors ${
                 mode === "login"
                   ? "border-b-2 border-[var(--accent)] text-[var(--accent)] font-semibold"
                   : "text-[var(--fg-muted)] hover:text-[var(--fg)]"
