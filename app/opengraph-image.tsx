@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Intrvw.ai — AI-powered interview coaching";
+export const alt = "Intrvw.ai — The only interview coach that knows your story";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -10,7 +10,7 @@ export default function OGImage() {
     (
       <div
         style={{
-          background: "#0B0B0F",
+          background: "#0a0619",
           width: "100%",
           height: "100%",
           display: "flex",
@@ -24,27 +24,27 @@ export default function OGImage() {
           style={{
             display: "flex",
             alignItems: "baseline",
-            fontSize: 48,
-            fontWeight: 600,
-            color: "#EDEDF0",
+            fontSize: 52,
+            fontWeight: 700,
             letterSpacing: "-0.02em",
+            background: "linear-gradient(135deg, #fdb051, #f2203e, #5342d6)",
+            backgroundClip: "text",
+            color: "transparent",
           }}
         >
-          intrvw
-          <span style={{ color: "#3B82F6" }}>.ai</span>
+          INTRVW.AI
         </div>
         <div
           style={{
-            marginTop: 24,
-            fontSize: 22,
-            color: "#8B8B98",
+            marginTop: 28,
+            fontSize: 24,
+            color: "#9994B0",
             maxWidth: 600,
             textAlign: "center",
             lineHeight: 1.5,
           }}
         >
-          Practice the interview you're actually walking into.
-          Tailored questions. Scored answers. Personalized coaching.
+          The only interview coach that knows your story.
         </div>
       </div>
     ),

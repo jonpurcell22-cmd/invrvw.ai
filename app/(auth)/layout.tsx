@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function AuthLayout({
@@ -10,9 +11,8 @@ export default function AuthLayout({
       <header className="px-6 py-6">
         <Link
           href="/"
-          className="text-sm font-semibold tracking-tight text-[var(--fg)]"
         >
-          intrvw<span className="text-[var(--accent)]">.ai</span>
+          <Image src="/logo.svg" alt="Intrvw.ai" width={120} height={32} className="h-7 w-auto" />
         </Link>
       </header>
       <div className="flex flex-1 flex-col items-center justify-center px-6 pb-24">

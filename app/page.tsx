@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ShareButton } from "@/components/ShareButton";
@@ -75,9 +76,9 @@ export default function HomePage() {
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
-          <span className="text-sm font-semibold tracking-tight text-[var(--fg)]">
-            intrvw<span className="text-[var(--accent)]">.ai</span>
-          </span>
+          <Link href="/">
+            <Image src="/logo.svg" alt="Intrvw.ai" width={120} height={32} className="h-7 w-auto" />
+          </Link>
           <nav className="flex items-center gap-2 sm:gap-3">
             <ShareButton />
             <Button variant="secondary" size="sm" href="/login">
@@ -234,10 +235,10 @@ export default function HomePage() {
       <footer className="py-8">
         <div className="mx-auto max-w-6xl px-6">
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
-            <p className="text-xs text-[var(--fg-subtle)]">
-              intrvw<span className="text-[var(--accent)]">.ai</span>
-              {" — "}AI-powered interview coaching
-            </p>
+            <div className="flex items-center gap-2">
+              <Image src="/logo.svg" alt="Intrvw.ai" width={80} height={20} className="h-4 w-auto opacity-60" />
+              <span className="text-xs text-[var(--fg-subtle)]">AI-powered interview coaching</span>
+            </div>
             <div className="flex gap-4 text-xs text-[var(--fg-subtle)]">
               <Link
                 href="/terms"

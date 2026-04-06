@@ -19,7 +19,7 @@ export type ButtonProps = Shared &
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-[var(--accent)] text-white font-medium hover:bg-[var(--accent-hover)] border border-[var(--accent)] active:scale-[0.98] shadow-[0_1px_12px_rgba(59,130,246,0.2)]",
+    "bg-gradient-to-r from-[var(--grad-start)] via-[var(--grad-mid)] to-[var(--grad-end)] text-white font-medium hover:brightness-110 border border-white/10 active:scale-[0.98] shadow-[0_1px_16px_rgba(242,32,62,0.2)]",
   secondary:
     "bg-[var(--surface)] text-[var(--fg)] border border-[var(--border-strong)] hover:bg-[var(--surface-hover)] hover:border-[var(--fg-subtle)]/30 active:scale-[0.98]",
   ghost:

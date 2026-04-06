@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function LegalLayout({
@@ -11,9 +12,8 @@ export default function LegalLayout({
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center px-6">
           <Link
             href="/"
-            className="text-sm font-semibold tracking-tight text-[var(--fg)]"
           >
-            intrvw<span className="text-[var(--accent)]">.ai</span>
+            <Image src="/logo.svg" alt="Intrvw.ai" width={120} height={32} className="h-7 w-auto" />
           </Link>
         </div>
       </header>
