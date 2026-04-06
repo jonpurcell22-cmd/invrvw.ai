@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { analyzeDelivery } from "@/lib/delivery-analysis";
-import { Clock, Gauge, AlertCircle } from "lucide-react";
+import { Mic } from "lucide-react";
 
 export type ResultRow = {
   questionId: string;
@@ -22,6 +21,7 @@ type ParsedDimension = { score: number; feedback: string };
 type ParsedFeedback = {
   dimensions?: Record<string, ParsedDimension>;
   overallScore1To5?: number;
+  deliveryFeedback?: string;
 } | null;
 
 function parseFeedback(raw: string | null): ParsedFeedback {
@@ -130,7 +130,6 @@ function QuestionResult({ row }: { row: ResultRow }) {
   const [showScoring, setShowScoring] = useState(false);
   const parsed = parseFeedback(row.feedbackRaw);
   const model = parseModelAnswer(row.modelAnswer);
-  const delivery = row.transcript ? analyzeDelivery(row.transcript) : null;
 
   // Find top strengths and weaknesses from dimensions
   const dims = parsed?.dimensions;
@@ -232,75 +231,13 @@ function QuestionResult({ row }: { row: ResultRow }) {
           </div>
         ) : null}
 
-        {/* Delivery metrics */}
-        {delivery && delivery.wordCount > 0 ? (
-          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface-raised)] px-4 py-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--fg-subtle)]">
-              Delivery
-            </h3>
-            <div className="mt-3 grid grid-cols-3 gap-4">
-              {delivery.durationSec != null ? (
-                <div className="flex items-start gap-2">
-                  <Clock size={14} className="mt-0.5 text-[var(--fg-subtle)]" />
-                  <div>
-                    <p className="font-mono text-sm font-medium text-[var(--fg)]">
-                      {Math.floor(delivery.durationSec / 60)}:{String(Math.floor(delivery.durationSec % 60)).padStart(2, "0")}
-                    </p>
-                    <p className="text-[11px] text-[var(--fg-subtle)]">
-                      {delivery.durationRating === "too_short"
-                        ? "Too brief"
-                        : delivery.durationRating === "too_long"
-                          ? "Too long"
-                          : "Good length"}
-                    </p>
-                  </div>
-                </div>
-              ) : null}
-              {delivery.wordsPerMinute != null ? (
-                <div className="flex items-start gap-2">
-                  <Gauge size={14} className="mt-0.5 text-[var(--fg-subtle)]" />
-                  <div>
-                    <p className="font-mono text-sm font-medium text-[var(--fg)]">
-                      {delivery.wordsPerMinute} <span className="text-[11px] font-normal text-[var(--fg-subtle)]">wpm</span>
-                    </p>
-                    <p className="text-[11px] text-[var(--fg-subtle)]">
-                      {delivery.paceRating === "too_slow"
-                        ? "Speed up"
-                        : delivery.paceRating === "too_fast"
-                          ? "Slow down"
-                          : "Good pace"}
-                    </p>
-                  </div>
-                </div>
-              ) : null}
-              <div className="flex items-start gap-2">
-                <AlertCircle size={14} className="mt-0.5 text-[var(--fg-subtle)]" />
-                <div>
-                  <p className="font-mono text-sm font-medium text-[var(--fg)]">
-                    {delivery.fillerCount}
-                  </p>
-                  <p className="text-[11px] text-[var(--fg-subtle)]">
-                    {delivery.fillerCount === 0
-                      ? "No fillers"
-                      : delivery.fillerCount <= 3
-                        ? "Few fillers"
-                        : "Reduce fillers"}
-                  </p>
-                </div>
-              </div>
-            </div>
-            {delivery.fillerBreakdown.length > 0 ? (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {delivery.fillerBreakdown.map((f) => (
-                  <span
-                    key={f.word}
-                    className="rounded-md bg-[var(--surface)] px-2 py-0.5 text-[11px] text-[var(--fg-muted)]"
-                  >
-                    &ldquo;{f.word}&rdquo; &times;{f.count}
-                  </span>
-                ))}
-              </div>
-            ) : null}
+        {/* Delivery coaching */}
+        {parsed?.deliveryFeedback ? (
+          <div className="flex gap-3">
+            <Mic size={14} className="mt-1 shrink-0 text-[var(--fg-subtle)]" />
+            <p className="text-sm leading-relaxed text-[var(--fg-muted)]">
+              {parsed.deliveryFeedback}
+            </p>
           </div>
         ) : null}
 

@@ -52,6 +52,17 @@ export function ResultsGate({ sessionId }: { sessionId: string }) {
       }
 
       // Success — anonymous user is now a real user
+      // Send welcome email (fire and forget)
+      fetch("/api/email/welcome", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          email,
+          name: name || undefined,
+          resultsUrl: `/session/${sessionId}/results`,
+        }),
+      }).catch(() => {});
+
       router.refresh();
       setPending(false);
     } else {

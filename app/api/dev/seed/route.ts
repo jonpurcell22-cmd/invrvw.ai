@@ -173,7 +173,7 @@ const SEED_QUESTIONS: SeedQ[] = [
   {
     questionText: "Tell me about a time you led a complex technical project from start to finish.",
     category: "behavioral",
-    transcript: "At my last company I led the migration of our monolith to microservices. I started by mapping all the service boundaries with the team, then created a phased rollout plan. We moved the auth service first since it had the fewest dependencies. Over six months we migrated eight services, reduced deploy times from 45 minutes to under 5, and cut incident rates by 60%.",
+    transcript: "So um at my last company I led the migration of our monolith to microservices. I started by like mapping all the service boundaries with the team, and then um created a phased rollout plan. We moved the auth service first since it had the fewest dependencies, you know. Over six months we basically migrated eight services, reduced deploy times from 45 minutes to under 5, and um cut incident rates by 60%.",
     dimensionScores: { relevance: 5, structure: 4, specificity: 4, impact_articulation: 5, communication_clarity: 4, analytical_reasoning: 4, values_culture_signal: 3 },
     weights: { relevance: 0.10, structure: 0.15, specificity: 0.20, impact_articulation: 0.20, communication_clarity: 0.10, analytical_reasoning: 0.15, values_culture_signal: 0.10 },
     feedback: {
@@ -190,7 +190,7 @@ const SEED_QUESTIONS: SeedQ[] = [
   {
     questionText: "How do you handle disagreements with a colleague about a technical approach?",
     category: "behavioral",
-    transcript: "I try to listen first and understand their perspective. Usually I suggest we write up the trade-offs of each approach and compare them objectively. If we still disagree I propose a time-boxed spike to validate assumptions.",
+    transcript: "Um so I try to like listen first and understand their perspective I guess. Usually I suggest we like write up the trade-offs of each approach and um compare them objectively sort of. If we still disagree I kind of propose a time-boxed spike to um validate assumptions, you know.",
     dimensionScores: { relevance: 3, structure: 2, specificity: 1, impact_articulation: 1, communication_clarity: 3, analytical_reasoning: 2, values_culture_signal: 3 },
     weights: { relevance: 0.10, structure: 0.15, specificity: 0.20, impact_articulation: 0.20, communication_clarity: 0.10, analytical_reasoning: 0.15, values_culture_signal: 0.10 },
     feedback: {
@@ -224,7 +224,7 @@ const SEED_QUESTIONS: SeedQ[] = [
   {
     questionText: "Why are you interested in this role at Acme Corp?",
     category: "culture",
-    transcript: "I like the company and the role seems interesting. I want to work on challenging problems and grow as an engineer.",
+    transcript: "Um yeah I like the company and like the role seems interesting I guess. I basically want to work on um challenging problems and sort of grow as an engineer, you know.",
     dimensionScores: { relevance: 2, structure: 1, specificity: 1, impact_articulation: 1, communication_clarity: 2, analytical_reasoning: 1, values_culture_signal: 1 },
     weights: { relevance: 0.10, structure: 0.05, specificity: 0.10, impact_articulation: 0.10, communication_clarity: 0.15, analytical_reasoning: 0.10, values_culture_signal: 0.40 },
     feedback: {

@@ -132,14 +132,17 @@ export async function POST(request: Request) {
       resumeText = resumeParsed.text.trim();
       resumeFilename = resumeEntry.name;
 
-      // Save to profile for future use
-      await supabase
+      // Save to profile for future use (non-blocking — don't fail session creation)
+      supabase
         .from("profiles")
         .upsert({
           id: user.id,
           resume_text: resumeText,
           resume_filename: resumeFilename,
           updated_at: new Date().toISOString(),
+        })
+        .then(({ error: profileErr }) => {
+          if (profileErr) console.error("Profile save failed:", profileErr.message);
         });
     }
 

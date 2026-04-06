@@ -137,6 +137,7 @@ export async function POST(request: Request) {
         feedback: JSON.stringify({
           dimensions: scored.dimensions,
           overallScore1To5: scored.overallScore1To5,
+          deliveryFeedback: scored.deliveryFeedback,
         }),
         model_answer: scored.modelAnswer,
         audio_url: null,
