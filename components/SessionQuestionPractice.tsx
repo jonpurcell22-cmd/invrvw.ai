@@ -264,6 +264,46 @@ export function SessionQuestionPractice({
           Previous
         </Button>
         <div className="flex gap-3">
+          {/* Dev-only: skip to scoring with dummy answers */}
+          {process.env.NODE_ENV === "development" ? (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                const dummyAnswers: SavedAnswer[] = questions.map((q) => ({
+                  questionId: q.id,
+                  transcript:
+                    "At my previous company I led a migration of our core payment system from a monolithic architecture to microservices. I started by mapping all service boundaries with the engineering team, then created a phased rollout plan. We moved the auth service first since it had the fewest dependencies. Over six months we migrated eight services, reduced deploy times from 45 minutes to under 5, and cut incident rates by 60 percent. The key lesson was investing upfront in shared observability tooling before splitting services.",
+                  speechMeta: {
+                    durationSec: 90,
+                    wordCount: 85,
+                    wordsPerMinute: 140,
+                  },
+                }));
+                setAnswers(dummyAnswers);
+                setSubmitting(true);
+                setError(null);
+                fetch("/api/session/submit-all", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                  body: JSON.stringify({ sessionId, answers: dummyAnswers }),
+                })
+                  .then((r) => r.json())
+                  .then((data: { resultsUrl?: string; error?: string }) => {
+                    if (data.error) throw new Error(data.error);
+                    router.push(
+                      data.resultsUrl ?? `/session/${sessionId}/results`,
+                    );
+                    router.refresh();
+                  })
+                  .catch((e: Error) => {
+                    setError(e.message);
+                    setSubmitting(false);
+                  });
+              }}
+            >
+              Dev: Skip to scoring
+            </Button>
+          ) : null}
           {!isLastQuestion ? (
             <Button
               variant="primary"
