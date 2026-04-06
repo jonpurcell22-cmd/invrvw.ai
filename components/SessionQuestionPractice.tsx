@@ -8,12 +8,23 @@ import type { AudioRecording } from "@/lib/audio";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Loader2 } from "lucide-react";
 
 export type PracticeQuestionRow = {
   id: string;
   question_text: string;
   question_category: string;
   question_order: number;
+};
+
+type SavedAnswer = {
+  questionId: string;
+  transcript: string;
+  speechMeta: {
+    durationSec: number | null;
+    wordCount: number;
+    wordsPerMinute: number | null;
+  };
 };
 
 export function SessionQuestionPractice({
@@ -30,14 +41,18 @@ export function SessionQuestionPractice({
     Math.min(Math.max(0, startIndex), Math.max(0, questions.length - 1)),
   );
   const [transcript, setTranscript] = useState("");
-  const [scoring, setScoring] = useState(false);
-  const [scored, setScored] = useState(false);
-  const [lastScore, setLastScore] = useState<number | null>(null);
+  const [answers, setAnswers] = useState<SavedAnswer[]>([]);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<AudioRecording | null>(null);
 
   const current = questions[index];
   const total = questions.length;
+  const isLastQuestion = index >= total - 1;
+  const hasTranscript = transcript.trim().length > 0;
+
+  // Check if current question already has a saved answer
+  const currentSaved = answers.find((a) => a.questionId === current?.id);
 
   if (!current) {
     return (
@@ -45,11 +60,9 @@ export function SessionQuestionPractice({
     );
   }
 
-  async function handleSubmit() {
+  function saveCurrentAnswer() {
     const t = transcript.trim();
-    if (!t || scoring) return;
-    setError(null);
-    setScoring(true);
+    if (!t) return null;
 
     const wordCount = t.split(/\s+/).filter(Boolean).length;
     const durationSec = audioRef.current?.durationSec ?? null;
@@ -58,49 +71,118 @@ export function SessionQuestionPractice({
         ? Math.round((wordCount / durationSec) * 60)
         : null;
 
+    const answer: SavedAnswer = {
+      questionId: current.id,
+      transcript: t,
+      speechMeta: {
+        durationSec: durationSec ? Math.round(durationSec) : null,
+        wordCount,
+        wordsPerMinute,
+      },
+    };
+
+    setAnswers((prev) => {
+      const filtered = prev.filter((a) => a.questionId !== current.id);
+      return [...filtered, answer];
+    });
+
+    return answer;
+  }
+
+  function handleNext() {
+    saveCurrentAnswer();
+    setIndex((i) => i + 1);
+    setTranscript("");
+    setError(null);
+    audioRef.current = null;
+  }
+
+  function handlePrev() {
+    saveCurrentAnswer();
+    setIndex((i) => Math.max(0, i - 1));
+    // Restore previous transcript
+    const prevQuestion = questions[index - 1];
+    if (prevQuestion) {
+      const prevAnswer = answers.find(
+        (a) => a.questionId === prevQuestion.id,
+      );
+      setTranscript(prevAnswer?.transcript ?? "");
+    }
+    setError(null);
+    audioRef.current = null;
+  }
+
+  async function handleFinish() {
+    const finalAnswer = saveCurrentAnswer();
+    if (!finalAnswer && !currentSaved) return;
+
+    // Collect all answers
+    const allAnswers = [...answers.filter((a) => a.questionId !== current.id)];
+    if (finalAnswer) allAnswers.push(finalAnswer);
+    else if (currentSaved) allAnswers.push(currentSaved);
+
+    // Verify we have answers for all questions
+    const answeredIds = new Set(allAnswers.map((a) => a.questionId));
+    const unanswered = questions.filter((q) => !answeredIds.has(q.id));
+    if (unanswered.length > 0) {
+      setError(
+        `${unanswered.length} question${unanswered.length > 1 ? "s" : ""} still need an answer.`,
+      );
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
     try {
-      const res = await fetch("/api/session/respond", {
+      const res = await fetch("/api/session/submit-all", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           sessionId,
-          questionId: current.id,
-          transcript: t,
-          speechMeta: {
-            durationSec: durationSec ? Math.round(durationSec) : null,
-            wordCount,
-            wordsPerMinute,
-          },
+          answers: allAnswers,
         }),
       });
       const data = (await res.json()) as {
-        score?: number;
+        resultsUrl?: string;
         error?: string;
       };
       if (!res.ok) {
         throw new Error(data.error ?? "Scoring failed");
       }
-      setLastScore(data.score ?? null);
-      setScored(true);
+      router.push(data.resultsUrl ?? `/session/${sessionId}/results`);
+      router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Scoring failed");
-    } finally {
-      setScoring(false);
+      setError(e instanceof Error ? e.message : "Something went wrong");
+      setSubmitting(false);
     }
   }
 
-  function handleNext() {
-    if (index >= total - 1) {
-      router.push(`/session/${sessionId}/results`);
-      router.refresh();
-      return;
-    }
-    setIndex((i) => i + 1);
-    setTranscript("");
-    setScored(false);
-    setLastScore(null);
-    setError(null);
-    audioRef.current = null;
+  // Restore transcript when navigating back to an answered question
+  const displayTranscript =
+    transcript || answers.find((a) => a.questionId === current.id)?.transcript || "";
+
+  // Scoring screen
+  if (submitting) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
+        <Loader2
+          size={32}
+          className="animate-spin text-[var(--accent)]"
+        />
+        <h2 className="mt-6 text-xl font-bold text-[var(--fg)]">
+          Scoring your interview
+        </h2>
+        <p className="mt-2 max-w-sm text-sm text-[var(--fg-muted)]">
+          We're analyzing all {total} answers in parallel — scoring each on 7
+          dimensions and generating personalized coaching. This usually takes
+          about a minute.
+        </p>
+        <div className="mt-8 w-full max-w-xs">
+          <ProgressBar value={100} max={100} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -113,9 +195,6 @@ export function SessionQuestionPractice({
           >
             ← Dashboard
           </Link>
-          <p className="mt-3 font-mono text-xs text-[var(--fg-subtle)]">
-            Session {sessionId}
-          </p>
         </div>
         <div className="w-full max-w-xs sm:w-56">
           <ProgressBar label="Progress" value={index + 1} max={total} />
@@ -127,23 +206,27 @@ export function SessionQuestionPractice({
           Question {index + 1} of {total}
         </Badge>
         <Badge tone="neutral">{current.question_category}</Badge>
+        {currentSaved ? (
+          <Badge tone="success">Answered</Badge>
+        ) : null}
       </div>
 
-      <div className="animate-fade-up">
+      <div key={current.id} className="animate-fade-up">
         <h1 className="text-xl font-bold tracking-tight text-[var(--fg)] sm:text-2xl">
           {current.question_text}
         </h1>
         <p className="mt-3 text-sm text-[var(--fg-muted)]">
-          Record your answer or upload audio. You can edit the transcript before
-          submitting.
+          Record your answer using the microphone, then move to the next
+          question. All answers are scored together at the end.
         </p>
       </div>
 
       <VoiceRecorder
         key={current.id}
-        onTranscript={setTranscript}
-        onAudioRecording={(rec) => { audioRef.current = rec; }}
-        disabled={scoring || scored}
+        onTranscript={(t) => setTranscript(t)}
+        onAudioRecording={(rec) => {
+          audioRef.current = rec;
+        }}
       />
 
       <div className="space-y-2">
@@ -151,51 +234,54 @@ export function SessionQuestionPractice({
           htmlFor="transcript"
           className="block text-sm font-medium text-[var(--fg-muted)]"
         >
-          Transcript
+          Your answer
         </label>
         <textarea
           id="transcript"
-          value={transcript}
+          value={displayTranscript}
           onChange={(e) => setTranscript(e.target.value)}
-          disabled={scoring || scored}
           rows={5}
-          placeholder="Your answer appears here — edit if needed."
-          className="w-full resize-y rounded-xl border border-[var(--border)] bg-[var(--surface-hover)] px-4 py-3 text-sm text-[var(--fg)] shadow-sm transition-colors placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:border-[var(--accent)]/30 disabled:opacity-40"
+          placeholder="Your answer appears here after recording — or type it directly."
+          className="w-full resize-y rounded-lg border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--fg)] shadow-sm transition-colors placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
         />
       </div>
 
       {error ? (
-        <p className="text-sm text-[var(--danger)]" role="alert">
-          {error}
-        </p>
-      ) : null}
-
-      {scored && lastScore != null ? (
-        <div className="rounded-xl border border-[var(--accent)]/20 bg-[var(--accent-muted)] px-5 py-4 text-sm text-[var(--accent)]">
-          Score for this question:{" "}
-          <span className="font-mono font-bold text-lg">{lastScore}</span>
-          <span className="text-[var(--fg-muted)]">/100</span>
-          <span className="ml-2 text-[var(--fg-subtle)]">
-            — Full breakdown on the results page.
-          </span>
+        <div
+          className="rounded-lg border border-[var(--danger)]/20 bg-[var(--danger-muted)] px-4 py-3"
+          role="alert"
+        >
+          <p className="text-sm text-[var(--danger)]">{error}</p>
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[var(--border)] pt-6">
-        {!scored ? (
-          <Button
-            type="button"
-            variant="primary"
-            disabled={!transcript.trim() || scoring}
-            onClick={handleSubmit}
-          >
-            {scoring ? "Scoring…" : "Submit answer"}
-          </Button>
-        ) : (
-          <Button type="button" variant="primary" onClick={handleNext}>
-            {index >= total - 1 ? "View results" : "Next question"}
-          </Button>
-        )}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-6">
+        <Button
+          variant="ghost"
+          disabled={index === 0}
+          onClick={handlePrev}
+        >
+          Previous
+        </Button>
+        <div className="flex gap-3">
+          {!isLastQuestion ? (
+            <Button
+              variant="primary"
+              disabled={!hasTranscript && !currentSaved}
+              onClick={handleNext}
+            >
+              Next question
+            </Button>
+          ) : (
+            <Button
+              variant="primary"
+              disabled={!hasTranscript && !currentSaved}
+              onClick={handleFinish}
+            >
+              Finish & get results
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
