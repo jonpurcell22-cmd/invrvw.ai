@@ -311,6 +311,45 @@ function normalizeCategory(raw: string): string {
   return t;
 }
 
+// Canonical dimension copy, mirroring the seven dimensions defined in
+// SESSION_JSON_SYSTEM. Used to fill a gap when Claude omits one.
+const DIMENSION_DEFAULTS: Record<
+  string,
+  { label: string; description: string }
+> = {
+  relevance: {
+    label: "Relevance",
+    description: "Did they answer what was actually asked?",
+  },
+  structure: {
+    label: "Structure",
+    description:
+      "STAR or equivalent logical flow (Situation, Task, Action, Result)",
+  },
+  specificity: {
+    label: "Specificity",
+    description:
+      "Concrete, personal, granular examples vs. vague generalities",
+  },
+  impact_articulation: {
+    label: "Impact Articulation",
+    description:
+      "Quantified or clearly qualified outcomes tied to their actions",
+  },
+  communication_clarity: {
+    label: "Communication Clarity",
+    description: "Conciseness, precision of language, narrative efficiency",
+  },
+  analytical_reasoning: {
+    label: "Analytical Reasoning",
+    description: "Problem-framing, decision logic, root cause thinking",
+  },
+  values_culture_signal: {
+    label: "Values / Culture Signal",
+    description: "Collaboration, ownership, growth mindset, ethical reasoning",
+  },
+};
+
 export function validateAndNormalizeSessionGeneration(
   data: unknown,
 ): SessionGenerationResult {
@@ -376,45 +415,58 @@ export function validateAndNormalizeSessionGeneration(
     const scale_min = Number(rub.scale_min ?? 1);
     const scale_max = Number(rub.scale_max ?? 5);
     const dimsRaw = rub.dimensions;
-    if (!Array.isArray(dimsRaw) || dimsRaw.length !== 7) {
-      throw new Error("rubric.dimensions must have exactly 7 entries");
+    if (!Array.isArray(dimsRaw)) {
+      throw new Error("rubric.dimensions must be an array");
     }
 
-    const keysFound = new Set<string>();
-    const dimensions: GeneratedRubricDimension[] = [];
+    // Claude intermittently drops, duplicates, or mangles one of the seven
+    // dimensions. Index whatever it sent and rebuild the canonical set, rather
+    // than discarding an otherwise good plan over one bad entry.
+    const suppliedDims = new Map<
+      string,
+      { label: string; description: string; weight: number }
+    >();
     for (const d of dimsRaw) {
-      if (!d || typeof d !== "object") {
-        throw new Error("Invalid rubric dimension");
-      }
+      if (!d || typeof d !== "object") continue;
       const dr = d as Record<string, unknown>;
       const key = String(dr.key ?? "").trim();
-      const label = String(dr.label ?? "").trim();
-      const description = String(dr.description ?? "").trim();
+      if (!REQUIRED_DIMENSION_SET.has(key) || suppliedDims.has(key)) continue;
       const weight = Number(dr.weight);
-      if (!REQUIRED_DIMENSION_SET.has(key)) {
-        throw new Error(`Invalid rubric dimension key: ${key}`);
-      }
-      if (keysFound.has(key)) {
-        throw new Error(`Duplicate rubric dimension key: ${key}`);
-      }
-      keysFound.add(key);
-      if (!label || !description || !Number.isFinite(weight) || weight <= 0) {
-        throw new Error(`Invalid rubric dimension values for key ${key}`);
-      }
-      dimensions.push({ key, label, description, weight });
+      suppliedDims.set(key, {
+        label: String(dr.label ?? "").trim(),
+        description: String(dr.description ?? "").trim(),
+        weight: Number.isFinite(weight) && weight > 0 ? weight : 0,
+      });
     }
-    for (const req of REQUIRED_DIMENSION_KEYS) {
-      if (!keysFound.has(req)) {
-        throw new Error(`Missing rubric dimension: ${req}`);
-      }
+
+    const dimensions: GeneratedRubricDimension[] = REQUIRED_DIMENSION_KEYS.map(
+      (key) => {
+        const supplied = suppliedDims.get(key);
+        const fallback = DIMENSION_DEFAULTS[key];
+        return {
+          key,
+          label: supplied?.label || fallback.label,
+          description: supplied?.description || fallback.description,
+          weight: supplied?.weight ?? 0,
+        };
+      },
+    );
+
+    // A dimension we had to fill in still has to count for something, so give
+    // it the average of the weights Claude did supply before normalizing.
+    const weighted = dimensions.filter((d) => d.weight > 0);
+    const fallbackWeight =
+      weighted.length > 0
+        ? weighted.reduce((sum, d) => sum + d.weight, 0) / weighted.length
+        : 1 / dimensions.length;
+    for (const d of dimensions) {
+      if (d.weight <= 0) d.weight = fallbackWeight;
     }
 
     // Normalize weights to sum to 1.0 in case Claude's math is slightly off
     const weightSum = dimensions.reduce((s, d) => s + d.weight, 0);
-    if (weightSum > 0) {
-      for (const d of dimensions) {
-        d.weight = d.weight / weightSum;
-      }
+    for (const d of dimensions) {
+      d.weight = d.weight / weightSum;
     }
 
     const notes =
