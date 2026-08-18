@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { ShareButton } from "@/components/ShareButton";
@@ -11,6 +12,8 @@ import {
   MessageSquareText,
   TrendingUp,
   UserCheck,
+  ShieldCheck,
+  Briefcase,
 } from "lucide-react";
 
 const STEPS = [
@@ -38,32 +41,32 @@ const FEATURES = [
   {
     icon: BrainCircuit,
     title: "Questions you'll actually face",
-    desc: "We research the company and read your resume. Every question is tailored to this specific interview.",
-  },
-  {
-    icon: BarChart3,
-    title: "7-dimension scoring",
-    desc: "Relevance, structure, specificity, impact, clarity, reasoning, and values. Calibrated to your seniority.",
-  },
-  {
-    icon: AudioLines,
-    title: "Delivery analytics",
-    desc: "Speaking pace, answer duration, filler words. Understand how you sound, not just what you say.",
+    desc: "We research the company and read your resume. Every question is tailored to this specific interview — not pulled from a generic bank.",
   },
   {
     icon: MessageSquareText,
     title: "Your story, told better",
-    desc: "Model answers built from your real companies and accomplishments. Not generic templates.",
+    desc: "Model answers built from your real companies, role titles, and accomplishments. You'll read it and think: that's my experience, structured in a way I never would have thought of.",
+  },
+  {
+    icon: BarChart3,
+    title: "Content + delivery scoring",
+    desc: "7-dimension content scoring plus delivery analytics: speaking pace, filler words, answer length. The only tool that evaluates both what you say and how you say it.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Practice, not a crutch",
+    desc: "We don't help you cheat. We help you not need to. Intrvw.ai makes you a better interviewer — no live copilots, no real-time answer feeds, no ethical gray areas.",
+  },
+  {
+    icon: Briefcase,
+    title: "Every industry, every role",
+    desc: "Engineers, nurses, teachers, sales leaders, PMs, executives. If you have a resume and a job description, Intrvw.ai works for your field.",
   },
   {
     icon: TrendingUp,
-    title: "Pattern recognition",
-    desc: "Cross-question analysis identifies the habits that help and the ones holding you back.",
-  },
-  {
-    icon: UserCheck,
-    title: "No signup to start",
-    desc: "Practice immediately. Create an account when you're ready to see your results.",
+    title: "You get better over time",
+    desc: "Track your scores across sessions. See which dimensions improve and which habits persist. Your coaching compounds — every session builds on the last.",
   },
 ];
 
@@ -73,17 +76,14 @@ export default function HomePage() {
       {/* Header */}
       <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur-md">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-6">
-          <span className="text-sm font-semibold tracking-tight text-[var(--fg)]">
-            intrvw<span className="text-[var(--accent)]">.ai</span>
-          </span>
-          <nav className="flex items-center gap-3">
+          <Link href="/">
+            <Image src="/logo.svg" alt="Intrvw.ai" width={120} height={32} className="h-7 w-auto" />
+          </Link>
+          <nav className="flex items-center gap-2 sm:gap-3">
             <ShareButton />
-            <Link
-              href="/login"
-              className="cursor-pointer text-sm text-[var(--fg-muted)] transition-colors duration-150 hover:text-[var(--fg)]"
-            >
+            <Button variant="secondary" size="sm" href="/login">
               Log in
-            </Link>
+            </Button>
             <Button variant="primary" size="sm" href="/session/new">
               Start practicing
             </Button>
@@ -96,17 +96,18 @@ export default function HomePage() {
         <div className="mx-auto max-w-4xl px-6 pb-20 pt-24 text-center">
           <div className="animate-fade-up">
             <p className="text-sm font-medium text-[var(--accent)]">
-              AI-powered interview coaching
+              The only interview coach that knows your story
             </p>
-            <h1 className="mt-4 text-4xl font-bold leading-[1.15] tracking-tight text-[var(--fg)] sm:text-5xl">
+            <h1 className="mt-4 text-3xl font-bold leading-[1.15] tracking-tight text-[var(--fg)] sm:text-4xl lg:text-5xl">
               Practice the interview you're
               <br className="hidden sm:block" />
               actually walking into
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[var(--fg-muted)]">
-              Upload your resume and a job description. Intrvw.ai generates
-              tailored questions, records your spoken answers, and coaches you
-              with the specificity of a hiring manager who wants you to get the offer.
+              Upload your resume and a job description. Intrvw.ai reads your
+              background, researches the company, and generates questions you'll
+              actually face — then coaches you with model answers built from your
+              real experience, not generic templates.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button variant="primary" size="lg" href="/session/new">
@@ -233,10 +234,26 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="py-8">
         <div className="mx-auto max-w-6xl px-6">
-          <p className="text-center text-xs text-[var(--fg-subtle)]">
-            intrvw<span className="text-[var(--accent)]">.ai</span>
-            {" — "}AI-powered interview coaching
-          </p>
+          <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
+            <div className="flex items-center gap-2">
+              <Image src="/logo.svg" alt="Intrvw.ai" width={80} height={20} className="h-4 w-auto opacity-60" />
+              <span className="text-xs text-[var(--fg-subtle)]">AI-powered interview coaching</span>
+            </div>
+            <div className="flex gap-4 text-xs text-[var(--fg-subtle)]">
+              <Link
+                href="/terms"
+                className="transition-colors hover:text-[var(--fg-muted)]"
+              >
+                Terms
+              </Link>
+              <Link
+                href="/privacy"
+                className="transition-colors hover:text-[var(--fg-muted)]"
+              >
+                Privacy
+              </Link>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

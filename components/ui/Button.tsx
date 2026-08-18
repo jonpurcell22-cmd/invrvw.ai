@@ -19,7 +19,7 @@ export type ButtonProps = Shared &
 
 const variantClass: Record<Variant, string> = {
   primary:
-    "bg-[var(--accent)] text-white font-medium hover:bg-[var(--accent-hover)] border border-[var(--accent)] active:scale-[0.98] shadow-[0_1px_12px_rgba(59,130,246,0.2)]",
+    "bg-white text-[var(--bg)] font-medium hover:bg-white/90 border border-white/20 active:scale-[0.98] shadow-[0_0_15px_rgba(253,176,81,0.35),0_0_30px_rgba(242,32,62,0.25),0_0_50px_rgba(83,66,214,0.2),0_0_80px_rgba(242,32,62,0.1)]",
   secondary:
     "bg-[var(--surface)] text-[var(--fg)] border border-[var(--border-strong)] hover:bg-[var(--surface-hover)] hover:border-[var(--fg-subtle)]/30 active:scale-[0.98]",
   ghost:
@@ -29,9 +29,9 @@ const variantClass: Record<Variant, string> = {
 };
 
 const sizeClass: Record<Size, string> = {
-  sm: "h-8 px-3 text-xs gap-1.5 rounded-lg",
-  md: "h-9 px-4 text-sm gap-2 rounded-lg",
-  lg: "h-10 px-5 text-sm gap-2 rounded-lg",
+  sm: "h-9 min-h-[44px] px-3.5 text-xs gap-1.5 rounded-lg",
+  md: "h-10 min-h-[44px] px-4 text-sm gap-2 rounded-lg",
+  lg: "h-11 min-h-[44px] px-5 text-sm gap-2 rounded-lg",
 };
 
 export function Button(props: ButtonProps) {

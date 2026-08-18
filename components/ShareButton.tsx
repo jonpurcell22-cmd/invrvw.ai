@@ -8,6 +8,7 @@ export function ShareButton() {
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -40,18 +41,30 @@ export function ShareButton() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: trimmed, senderName: "A friend" }),
       });
-      const data = (await res.json()) as { mailto?: string };
+      const data = (await res.json()) as {
+        sent?: boolean;
+        mailto?: string;
+        error?: string;
+      };
 
-      if (data.mailto) {
+      if (data.error) {
+        setError(data.error);
+        setSending(false);
+        return;
+      }
+
+      // If server couldn't send (no Resend key), fall back to mailto
+      if (data.mailto && !data.sent) {
         window.open(data.mailto, "_blank");
       }
 
       setSent(true);
       setEmail("");
+      setError(null);
       setTimeout(() => {
         setOpen(false);
         setSent(false);
-      }, 2000);
+      }, 2500);
     } catch {
       // Non-critical
     } finally {
@@ -74,7 +87,7 @@ export function ShareButton() {
     <div className="relative" ref={panelRef}>
       {/* Dropdown panel */}
       {open ? (
-        <div className="absolute right-0 top-full mt-2 w-80 animate-fade-in rounded-xl border border-[var(--border-strong)] bg-[var(--surface-solid)] p-4 shadow-[var(--shadow-elevated)] z-50">
+        <div className="absolute right-0 top-full mt-2 w-[calc(100vw-2rem)] max-w-80 animate-fade-in rounded-xl border border-[var(--border-strong)] bg-[var(--surface-solid)] p-4 shadow-[var(--shadow-elevated)] z-50">
           {sent ? (
             <div className="flex items-center gap-2 py-2 text-sm text-[var(--success)]">
               <Check size={16} />
@@ -109,18 +122,21 @@ export function ShareButton() {
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="their@email.com"
-                  className="flex h-9 flex-1 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
+                  className="flex h-11 flex-1 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40"
                 />
                 <button
                   type="button"
                   onClick={handleSend}
                   disabled={!email.trim().includes("@") || sending}
-                  className="flex h-9 cursor-pointer items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 text-xs font-medium text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-11 cursor-pointer items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3.5 text-xs font-medium text-white transition-colors hover:bg-[var(--accent-hover)] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Send size={12} />
                   Send
                 </button>
               </div>
+              {error ? (
+                <p className="mt-2 text-xs text-[var(--danger)]">{error}</p>
+              ) : null}
             </>
           )}
         </div>
@@ -133,11 +149,11 @@ export function ShareButton() {
           setOpen(!open);
           setSent(false);
         }}
-        className="flex h-8 cursor-pointer items-center gap-1.5 rounded-lg bg-[var(--accent)] px-3 text-xs font-medium text-white transition-colors hover:bg-[var(--accent-hover)]"
+        className="flex h-9 min-h-[44px] cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] px-2.5 text-xs font-medium text-[var(--fg-muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--fg)] sm:px-3.5"
         aria-label="Invite a friend to Intrvw.ai"
       >
-        <Gift size={13} />
-        <span>Invite a friend</span>
+        <Gift size={14} />
+        <span className="hidden sm:inline">Invite a friend</span>
       </button>
     </div>
   );

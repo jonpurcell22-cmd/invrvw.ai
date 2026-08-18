@@ -13,6 +13,7 @@ export interface ScoreAnswerResult {
   /** 0–100 for storage and UI. */
   overallScore100: number;
   modelAnswer: string;
+  deliveryFeedback: string;
 }
 
 function extractAssistantText(message: Message): string {
@@ -59,6 +60,9 @@ export async function scoreAnswerWithClaude(input: {
     durationSec?: number | null;
     wordCount?: number | null;
     wordsPerMinute?: number | null;
+    fillerCount?: number | null;
+    fillersPerMinute?: number | null;
+    fillerBreakdown?: { word: string; count: number }[] | null;
   } | null;
 }): Promise<ScoreAnswerResult> {
   const client = createAnthropicClient();
@@ -161,6 +165,14 @@ Category adjustments:
 PART 4 — ONE THING TO PRACTICE (1 sentence):
 Begin with "Before your next practice session," and name one specific, concrete action tied to the improvement in Part 2.
 
+DELIVERY COACHING (required field: delivery_feedback):
+Write 2-3 sentences of coaching about HOW the candidate delivered their answer, not what they said. Address these based on the speech metadata provided:
+- Filler words: If present, name the specific fillers, how many, and where they tend to cluster. Suggest a concrete fix (e.g., "pause silently instead of filling the gap").
+- Pacing: If WPM data is available, note whether they spoke too fast (rushed, hard to follow), too slow (lost energy), or at a good pace.
+- Answer length: If duration is available, note whether the answer was too brief (underdeveloped) or too long (rambling).
+- If no speech metadata is available, analyze the transcript for filler words and estimate answer length from word count (assume ~140 WPM for spoken answers).
+Use the same warm coaching tone as the rest of the feedback. Be specific and actionable, not generic.
+
 TONE CALIBRATION BY SCORE:
 - 80-100: Collegial and precise. Brief strength acknowledgment. Focus on one refinement from great to exceptional.
 - 60-79: Warm and encouraging. Clear praise. Direct about the improvement. "One shift" framing.
@@ -177,12 +189,17 @@ ANTI-SYCOPHANCY RULES:
 
 Respond with JSON only — no markdown, no preamble.`;
 
+  const fillerDetail = input.speechMeta?.fillerBreakdown?.length
+    ? `\n- Filler words detected: ${input.speechMeta.fillerCount} total (${input.speechMeta.fillerBreakdown.map((f) => `"${f.word}" x${f.count}`).join(", ")})` +
+      (input.speechMeta.fillersPerMinute != null ? `\n- Filler rate: ${input.speechMeta.fillersPerMinute} per minute (ideal: under 3 per minute)` : "")
+    : "";
+
   const speechSection = input.speechMeta
     ? `\n\nSpeech delivery metadata (from audio recording):
-- Answer duration: ${input.speechMeta.durationSec ? `${input.speechMeta.durationSec} seconds` : "unknown"}
+- Answer duration: ${input.speechMeta.durationSec ? `${input.speechMeta.durationSec} seconds (ideal: 60-180 seconds)` : "unknown"}
 - Word count: ${input.speechMeta.wordCount ?? "unknown"}
-- Speaking pace: ${input.speechMeta.wordsPerMinute ? `${input.speechMeta.wordsPerMinute} words per minute (ideal range: 130-160 WPM for interviews)` : "unknown"}
-Use this data when scoring Communication Clarity. Note if the answer was too short (<30 sec), too long (>4 min), too fast (>180 WPM), or too slow (<100 WPM). Factor filler words visible in the transcript (um, uh, like, you know, sort of, kind of) into your Communication Clarity score and feedback.`
+- Speaking pace: ${input.speechMeta.wordsPerMinute ? `${input.speechMeta.wordsPerMinute} words per minute (ideal: 130-160 WPM)` : "unknown"}${fillerDetail}
+Use ALL delivery data when scoring Communication Clarity. Specifically address: pace (too fast/slow?), filler word frequency (problematic if >5 per minute), and answer length (too short if <30s, too long if >4min). Include specific delivery feedback in the Communication Clarity dimension.`
     : "";
 
   const resumeSection = input.resumeText
@@ -226,7 +243,8 @@ Required JSON shape:
     "values_culture_signal": { "score": number, "feedback": string }
   },
   "overall_score_1_to_5": number,
-  "model_answer": string (four parts separated by blank lines: callback, improvement, personalized STAR+Reflection, one thing to practice)
+  "model_answer": string (four parts separated by blank lines: callback, improvement, personalized STAR+Reflection, one thing to practice),
+  "delivery_feedback": string (2-3 sentences coaching on filler words, pacing, and answer length — warm and specific)
 }`;
 
   const message = await client.messages.create({
@@ -295,10 +313,13 @@ Required JSON shape:
     throw new Error("Missing model_answer");
   }
 
+  const deliveryFeedback = String(parsed.delivery_feedback ?? "").trim();
+
   return {
     dimensions,
     overallScore1To5: overall1,
     overallScore100: overall100,
     modelAnswer,
+    deliveryFeedback,
   };
 }

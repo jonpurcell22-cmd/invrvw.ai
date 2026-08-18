@@ -353,19 +353,20 @@ export function NewSessionForm() {
               />
             ) : jdMode === "url" ? (
               <div className="space-y-3">
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <input
                     type="url"
                     value={jdUrl}
                     onChange={(e) => setJdUrl(e.target.value)}
-                    placeholder="https://jobs.lever.co/company/... or Google Docs link"
-                    className="flex h-10 flex-1 rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+                    placeholder="Paste job posting URL or Google Docs link"
+                    className="flex h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 sm:flex-1"
                   />
                   <Button
                     variant="secondary"
                     size="md"
                     disabled={!jdUrl.trim() || jdFetching}
                     onClick={handleFetchUrl}
+                    className="w-full sm:w-auto"
                   >
                     {jdFetching ? "Fetching…" : "Fetch"}
                   </Button>

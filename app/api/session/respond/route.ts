@@ -89,6 +89,7 @@ export async function POST(request: Request) {
     const feedbackPayload = JSON.stringify({
       dimensions: scored.dimensions,
       overallScore1To5: scored.overallScore1To5,
+      deliveryFeedback: scored.deliveryFeedback,
     });
 
     await supabase

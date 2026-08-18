@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
 
@@ -13,9 +14,8 @@ export default function AdminLayout({
           <div className="flex items-center gap-8">
             <Link
               href="/admin"
-              className="text-sm font-semibold tracking-tight text-[var(--fg)]"
             >
-              intrvw<span className="text-[var(--accent)]">.ai</span>{" "}
+              <Image src="/logo.svg" alt="Intrvw.ai" width={120} height={32} className="h-7 w-auto" />{" "}
               <span className="font-normal text-[var(--fg-subtle)]">admin</span>
             </Link>
             <nav className="hidden items-center gap-6 text-sm text-[var(--fg-muted)] sm:flex">

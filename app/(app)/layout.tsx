@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { LogoutButton } from "@/components/LogoutButton";
 import { ShareButton } from "@/components/ShareButton";
@@ -23,9 +24,8 @@ export default async function AppLayout({
           <div className="flex items-center gap-8">
             <Link
               href={isAnonymous ? "/" : "/dashboard"}
-              className="text-sm font-semibold tracking-tight text-[var(--fg)]"
             >
-              intrvw<span className="text-[var(--accent)]">.ai</span>
+              <Image src="/logo.svg" alt="Intrvw.ai" width={120} height={32} className="h-7 w-auto" />
             </Link>
             {!isAnonymous ? (
               <nav className="hidden items-center gap-6 text-sm text-[var(--fg-muted)] sm:flex">
@@ -44,25 +44,23 @@ export default async function AppLayout({
               </nav>
             ) : null}
           </div>
-          <div className="flex items-center gap-3">
-            <ShareButton />
+          <div className="flex items-center gap-2 sm:gap-3">
             {isAnonymous ? (
               <>
-                <Link
-                  href="/login"
-                  className="text-sm text-[var(--fg-muted)] transition-colors duration-150 hover:text-[var(--fg)]"
-                >
+                <ShareButton />
+                <Button variant="secondary" size="sm" href="/login">
                   Log in
-                </Link>
+                </Button>
                 <Button variant="primary" size="sm" href="/signup">
                   Sign up
                 </Button>
               </>
             ) : (
               <>
+                <ShareButton />
                 <LogoutButton />
                 <Button variant="primary" size="sm" href="/session/new">
-                  Practice
+                  New session
                 </Button>
               </>
             )}

@@ -1,29 +1,35 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0B0B0F;
-  --bg-secondary: #101014;
+  --bg: #0a0619;
+  --bg-secondary: #0f0b22;
   --fg: #EDEDF0;
-  --fg-muted: #8B8B98;
-  --fg-subtle: #55555F;
+  --fg-muted: #9994B0;
+  --fg-subtle: #5E5878;
   --border: rgba(255, 255, 255, 0.06);
   --border-strong: rgba(255, 255, 255, 0.1);
-  --surface: #151518;
-  --surface-solid: #1A1A1F;
-  --surface-hover: #1F1F25;
-  --surface-raised: #222228;
-  --ring: rgba(59, 130, 246, 0.5);
+  --surface: #130e26;
+  --surface-solid: #171131;
+  --surface-hover: #1c1538;
+  --surface-raised: #1f1840;
+  --ring: rgba(242, 32, 62, 0.5);
 
-  --accent: #3B82F6;
-  --accent-hover: #60A5FA;
-  --accent-muted: rgba(59, 130, 246, 0.1);
+  /* Brand gradient: gold → coral → indigo */
+  --grad-start: #fdb051;
+  --grad-mid: #f2203e;
+  --grad-end: #5342d6;
+  --gradient-brand: linear-gradient(135deg, #fdb051, #f2203e, #5342d6);
 
-  --danger: #EF4444;
+  --accent: #f2203e;
+  --accent-hover: #ff3a55;
+  --accent-muted: rgba(242, 32, 62, 0.1);
+
+  --danger: #ef4444;
   --danger-muted: rgba(239, 68, 68, 0.08);
-  --warning: #EAB308;
-  --warning-muted: rgba(234, 179, 8, 0.08);
-  --info: #3B82F6;
-  --info-muted: rgba(59, 130, 246, 0.08);
+  --warning: #fdb051;
+  --warning-muted: rgba(253, 176, 81, 0.08);
+  --info: #5342d6;
+  --info-muted: rgba(83, 66, 214, 0.08);
   --success: #22C55E;
   --success-muted: rgba(34, 197, 94, 0.08);
 
@@ -34,8 +40,8 @@
     0 0 0 1px var(--border-strong),
     0 8px 32px rgba(0, 0, 0, 0.5);
   --shadow-glow:
-    0 0 0 1px rgba(59, 130, 246, 0.15),
-    0 4px 24px rgba(59, 130, 246, 0.08);
+    0 0 0 1px rgba(242, 32, 62, 0.15),
+    0 4px 24px rgba(242, 32, 62, 0.08);
 
   --background: var(--bg);
   --foreground: var(--fg);
@@ -55,7 +61,7 @@ body {
 }
 
 ::selection {
-  background: rgba(59, 130, 246, 0.2);
+  background: rgba(242, 32, 62, 0.2);
   color: var(--fg);
 }
 
@@ -66,6 +72,14 @@ body {
 :focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--accent);
+}
+
+/* Brand gradient text */
+.text-gradient {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* Keyframes */

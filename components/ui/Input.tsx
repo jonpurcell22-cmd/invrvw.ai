@@ -27,7 +27,7 @@ export function Input({
       ) : null}
       <input
         id={inputId}
-        className={`flex h-9 w-full rounded-lg border bg-[var(--surface)] px-3 text-sm text-[var(--fg)] shadow-sm transition-colors placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 focus-visible:border-[var(--accent)]/30 disabled:cursor-not-allowed disabled:opacity-40 ${error ? "border-[var(--danger)]/50" : "border-[var(--border-strong)]"} ${className}`}
+        className={`flex h-11 w-full rounded-lg border bg-[var(--surface)] px-3 text-sm text-[var(--fg)] shadow-sm transition-colors placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/40 focus-visible:border-[var(--accent)]/30 disabled:cursor-not-allowed disabled:opacity-40 ${error ? "border-[var(--danger)]/50" : "border-[var(--border-strong)]"} ${className}`}
         {...props}
       />
       {hint && !error ? (

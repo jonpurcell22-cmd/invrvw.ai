@@ -42,28 +42,36 @@ export async function GET() {
     sessionsByUser.set(s.user_id, arr);
   }
 
-  const result = users.map((u) => {
-    const userSessions = sessionsByUser.get(u.id) ?? [];
-    const completed = userSessions.filter((s) => s.status === "completed").length;
-    const latestSession = userSessions[0] ?? null;
+  const result = users
+    .map((u) => {
+      const userSessions = sessionsByUser.get(u.id) ?? [];
+      const completed = userSessions.filter((s) => s.status === "completed").length;
+      const latestSession = userSessions[0] ?? null;
+      const isAnonymous = (u as { is_anonymous?: boolean }).is_anonymous === true;
 
-    return {
-      id: u.id,
-      email: u.email ?? null,
-      createdAt: u.created_at,
-      lastSignIn: u.last_sign_in_at ?? null,
-      sessionCount: userSessions.length,
-      completedCount: completed,
-      latestSession: latestSession
-        ? {
-            companyName: latestSession.company_name,
-            roleTitle: latestSession.role_title,
-            status: latestSession.status,
-            createdAt: latestSession.created_at,
-          }
-        : null,
-    };
-  });
+      // Registered = user has an email (not anonymous)
+      const registered = !isAnonymous && Boolean(u.email);
+
+      return {
+        id: u.id,
+        email: u.email ?? null,
+        registered,
+        createdAt: u.created_at,
+        lastSignIn: u.last_sign_in_at ?? null,
+        sessionCount: userSessions.length,
+        completedCount: completed,
+        latestSession: latestSession
+          ? {
+              companyName: latestSession.company_name,
+              roleTitle: latestSession.role_title,
+              status: latestSession.status,
+              createdAt: latestSession.created_at,
+            }
+          : null,
+      };
+    })
+    // Filter out users with no sessions at all (test logs / orphans)
+    .filter((u) => u.sessionCount > 0);
 
   // Sort by most recent activity (latest session or sign-in)
   result.sort((a, b) => {

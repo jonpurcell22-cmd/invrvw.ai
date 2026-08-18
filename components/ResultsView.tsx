@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { Mic } from "lucide-react";
 
 export type ResultRow = {
   questionId: string;
@@ -20,6 +21,7 @@ type ParsedDimension = { score: number; feedback: string };
 type ParsedFeedback = {
   dimensions?: Record<string, ParsedDimension>;
   overallScore1To5?: number;
+  deliveryFeedback?: string;
 } | null;
 
 function parseFeedback(raw: string | null): ParsedFeedback {
@@ -160,11 +162,11 @@ function QuestionResult({ row }: { row: ResultRow }) {
 
         {/* Score bar + quick dimension overview */}
         {dims ? (
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-7 sm:gap-1.5">
             {Object.entries(dims).map(([k, v]) => (
               <div key={k} className="space-y-1">
                 <DimensionBar score={v.score} />
-                <p className="text-center text-[10px] leading-tight text-[var(--fg-subtle)]">
+                <p className="text-center text-[11px] leading-tight text-[var(--fg-subtle)]">
                   {DIMENSION_LABELS[k] ?? k}
                 </p>
               </div>
@@ -229,12 +231,27 @@ function QuestionResult({ row }: { row: ResultRow }) {
           </div>
         ) : null}
 
+        {/* Delivery coaching */}
+        {parsed?.deliveryFeedback ? (
+          <div className="flex gap-3">
+            <Mic size={14} className="mt-1 shrink-0 text-[var(--fg-subtle)]" />
+            <p className="text-sm leading-relaxed text-[var(--fg-muted)]">
+              {parsed.deliveryFeedback}
+            </p>
+          </div>
+        ) : null}
+
         {/* Stronger version */}
         {model.strongerVersion ? (
           <div className="rounded-lg border border-[var(--accent)]/15 bg-[var(--accent-muted)] px-4 py-4">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">
-              Stronger version
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--accent)]">
+                Stronger version
+              </h3>
+              <span className="rounded-md bg-[var(--accent)]/10 px-2 py-0.5 text-[10px] font-medium text-[var(--accent)]">
+                Built from your resume
+              </span>
+            </div>
             <div className="mt-3 space-y-2.5">
               {model.strongerVersion.split("\n\n").map((para, i) => (
                 <p
@@ -378,7 +395,7 @@ export function ResultsView({
         </p>
         <div className="mt-8">
           <div className="flex items-baseline gap-3">
-            <span className="font-mono text-5xl font-bold tracking-tight text-[var(--accent)]">
+            <span className="font-mono text-4xl font-bold tracking-tight text-[var(--accent)] sm:text-5xl">
               {overallScore}
             </span>
             <div className="space-y-0.5">

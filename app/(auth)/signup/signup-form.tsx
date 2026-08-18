@@ -42,6 +42,13 @@ export function SignupForm() {
     }
 
     if (data.session) {
+      // Send welcome email (fire and forget)
+      fetch("/api/email/welcome", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, name: name || undefined }),
+      }).catch(() => {});
+
       router.push("/dashboard");
       router.refresh();
       setPending(false);
