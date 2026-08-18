@@ -1,4 +1,8 @@
-import { createAnthropicClient, CLAUDE_MODEL } from "@/lib/claude";
+import {
+  createAnthropicClient,
+  CLAUDE_MODEL,
+  assertNotTruncated,
+} from "@/lib/claude";
 import type { Message } from "@anthropic-ai/sdk/resources/messages";
 
 export interface SummaryInput {
@@ -128,10 +132,12 @@ ${questionsBlock}`;
 
   const message = await client.messages.create({
     model: CLAUDE_MODEL,
-    max_tokens: 4096,
+    max_tokens: 16000,
     system,
     messages: [{ role: "user", content: user }],
   });
+
+  assertNotTruncated(message, "Session summary");
 
   const raw = extractAssistantText(message);
   if (!raw) throw new Error("Empty summary response");

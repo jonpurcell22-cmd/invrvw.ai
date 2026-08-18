@@ -1,4 +1,8 @@
-import { createAnthropicClient, CLAUDE_MODEL } from "@/lib/claude";
+import {
+  createAnthropicClient,
+  CLAUDE_MODEL,
+  assertNotTruncated,
+} from "@/lib/claude";
 import type { Message } from "@anthropic-ai/sdk/resources/messages";
 
 export interface DimensionScoreResult {
@@ -249,10 +253,12 @@ Required JSON shape:
 
   const message = await client.messages.create({
     model: CLAUDE_MODEL,
-    max_tokens: 8192,
+    max_tokens: 16000,
     system,
     messages: [{ role: "user", content: user }],
   });
+
+  assertNotTruncated(message, "Answer scoring");
 
   const raw = extractAssistantText(message);
   if (!raw) {

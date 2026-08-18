@@ -177,6 +177,23 @@ ${input.jobDescriptionText}
 The questions array must have length 4–6. rubric.dimensions must have exactly 7 objects whose key values are exactly the seven keys listed in the system message. Weights must sum to 1.0.`;
 }
 
+// Opus 5 runs adaptive thinking by default, so thinking tokens draw down the
+// same max_tokens budget as the JSON payload. A full plan costs ~10k output
+// tokens (~2k of it thinking), so the old 16384 cap could be exhausted
+// mid-array; the truncated JSON then failed to parse with an opaque
+// "Expected ',' or ']'" SyntaxError. Stream the request so the larger budget
+// can't run into an HTTP timeout.
+const MAX_PLAN_OUTPUT_TOKENS = 32000;
+
+// Truncation is not a parse problem, so don't let it surface as one.
+export function assertNotTruncated(message: Message, label: string): void {
+  if (message.stop_reason === "max_tokens") {
+    throw new Error(
+      `${label} hit the output token limit before finishing. Please try again.`,
+    );
+  }
+}
+
 function extractAssistantText(message: Message): string {
   const parts: string[] = [];
   for (const block of message.content) {
@@ -370,13 +387,15 @@ export async function generateSessionInterviewPlan(
 
   let message: Message | undefined;
   for (let turn = 0; turn < 8; turn++) {
-    message = await client.messages.create({
-      model: CLAUDE_MODEL,
-      max_tokens: 16384,
-      system: SESSION_JSON_SYSTEM,
-      tools,
-      messages,
-    });
+    message = await client.messages
+      .stream({
+        model: CLAUDE_MODEL,
+        max_tokens: MAX_PLAN_OUTPUT_TOKENS,
+        system: SESSION_JSON_SYSTEM,
+        tools,
+        messages,
+      })
+      .finalMessage();
 
     if (message.stop_reason === "end_turn") {
       break;
@@ -393,6 +412,8 @@ export async function generateSessionInterviewPlan(
   if (!message) {
     throw new Error("No response from Claude");
   }
+
+  assertNotTruncated(message, "Question generation");
 
   const rawText = extractAssistantText(message);
   if (!rawText) {
