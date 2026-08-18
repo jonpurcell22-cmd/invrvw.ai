@@ -204,23 +204,99 @@ function extractAssistantText(message: Message): string {
   return parts.join("\n").trim();
 }
 
-function parseJsonFromAssistant(raw: string): unknown {
+// Scan for the first balanced { ... } run, tracking string state so braces
+// inside values don't throw the count off. The previous lastIndexOf("}")
+// approach picked up any stray brace in trailing prose and produced an
+// unbalanced slice, which then failed to parse for a misleading reason.
+function extractJsonObject(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start < 0) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+
+    if (ch === '"') inString = true;
+    else if (ch === "{") depth++;
+    else if (ch === "}" && --depth === 0) return text.slice(start, i + 1);
+  }
+
+  return null;
+}
+
+// Claude occasionally leaves a comma before a closing brace or bracket, which
+// is valid in JS but not JSON. Drop those, ignoring commas inside strings.
+function stripTrailingCommas(json: string): string {
+  let out = "";
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < json.length; i++) {
+    const ch = json[i];
+
+    if (inString) {
+      out += ch;
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === ",") {
+      let j = i + 1;
+      while (j < json.length && /\s/.test(json[j])) j++;
+      if (json[j] === "}" || json[j] === "]") continue;
+    }
+
+    out += ch;
+  }
+
+  return out;
+}
+
+export function parseJsonFromAssistant(raw: string): unknown {
   let t = raw.trim();
   if (t.startsWith("```")) {
     t = t.replace(/^```(?:json)?\s*/i, "");
     t = t.replace(/\s*```\s*$/i, "");
     t = t.trim();
   }
+
   try {
     return JSON.parse(t) as unknown;
   } catch {
-    // Claude sometimes adds a short preamble before the JSON object.
-    const start = t.indexOf("{");
-    const end = t.lastIndexOf("}");
-    if (start >= 0 && end > start) {
-      return JSON.parse(t.slice(start, end + 1)) as unknown;
-    }
-    throw new Error("Could not parse JSON from Claude response");
+    // Fall through — Claude sometimes wraps the object in prose.
+  }
+
+  // Claude sometimes adds a short preamble before the JSON object.
+  const candidate = extractJsonObject(t);
+  if (!candidate) {
+    throw new Error("Could not find a JSON object in Claude's response");
+  }
+
+  try {
+    return JSON.parse(candidate) as unknown;
+  } catch {
+    // Fall through — try the repair pass before giving up.
+  }
+
+  try {
+    return JSON.parse(stripTrailingCommas(candidate)) as unknown;
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e);
+    throw new Error(`Claude returned malformed JSON: ${detail}`);
   }
 }
 
@@ -367,12 +443,10 @@ export function validateAndNormalizeSessionGeneration(
   };
 }
 
-export async function generateSessionInterviewPlan(
-  input: GenerateSessionContentInput,
+async function requestSessionPlan(
+  client: Anthropic,
+  userContent: string,
 ): Promise<SessionGenerationResult> {
-  const client = createAnthropicClient();
-  const userContent = buildUserPayload(input);
-
   const tools = [
     {
       type: "web_search_20250305" as const,
@@ -422,4 +496,38 @@ export async function generateSessionInterviewPlan(
 
   const parsed = parseJsonFromAssistant(rawText);
   return validateAndNormalizeSessionGeneration(parsed);
+}
+
+// A generation runs ~90-120s and the route allows 300s, so there is room for
+// exactly one more attempt. Only spend it if the clock says it can finish.
+const RETRY_IF_ELAPSED_UNDER_MS = 150_000;
+
+export async function generateSessionInterviewPlan(
+  input: GenerateSessionContentInput,
+): Promise<SessionGenerationResult> {
+  const client = createAnthropicClient();
+  const userContent = buildUserPayload(input);
+  const startedAt = Date.now();
+
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await requestSessionPlan(client, userContent);
+    } catch (e) {
+      // API-level failures (auth, rate limits, 5xx) are already retried by the
+      // SDK, so a second full generation would only burn the time budget. Retry
+      // the model's own output problems: malformed JSON, a truncated response,
+      // or a plan that failed shape validation.
+      const worthRetrying =
+        attempt === 1 &&
+        !(e instanceof Anthropic.APIError) &&
+        Date.now() - startedAt < RETRY_IF_ELAPSED_UNDER_MS;
+
+      if (!worthRetrying) throw e;
+
+      console.warn(
+        `Question generation attempt ${attempt} failed, retrying once:`,
+        e instanceof Error ? e.message : e,
+      );
+    }
+  }
 }
