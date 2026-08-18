@@ -129,7 +129,6 @@ ${questionsBlock}`;
   const message = await client.messages.create({
     model: CLAUDE_MODEL,
     max_tokens: 4096,
-    temperature: 0.2,
     system,
     messages: [{ role: "user", content: user }],
   });

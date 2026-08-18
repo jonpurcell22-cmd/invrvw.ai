@@ -31,7 +31,6 @@ export async function POST(request: Request) {
     const message = await client.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: 256,
-      temperature: 0,
       system:
         'Extract the company name and role title from this job description. Respond with JSON only: {"company": string | null, "role": string | null}. If either is not identifiable, use null.',
       messages: [

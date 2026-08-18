@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { Message } from "@anthropic-ai/sdk/resources/messages";
+import type { Message, MessageParam } from "@anthropic-ai/sdk/resources/messages";
 
-export const CLAUDE_MODEL = "claude-sonnet-4-20250514" as const;
+export const CLAUDE_MODEL = "claude-opus-5" as const;
 
 const REQUIRED_DIMENSION_KEYS = [
   "relevance",
@@ -192,8 +192,19 @@ function parseJsonFromAssistant(raw: string): unknown {
   if (t.startsWith("```")) {
     t = t.replace(/^```(?:json)?\s*/i, "");
     t = t.replace(/\s*```\s*$/i, "");
+    t = t.trim();
   }
-  return JSON.parse(t) as unknown;
+  try {
+    return JSON.parse(t) as unknown;
+  } catch {
+    // Claude sometimes adds a short preamble before the JSON object.
+    const start = t.indexOf("{");
+    const end = t.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      return JSON.parse(t.slice(start, end + 1)) as unknown;
+    }
+    throw new Error("Could not parse JSON from Claude response");
+  }
 }
 
 function normalizeCategory(raw: string): string {
@@ -345,25 +356,42 @@ export async function generateSessionInterviewPlan(
   const client = createAnthropicClient();
   const userContent = buildUserPayload(input);
 
-  const message = await client.messages.create({
-    model: CLAUDE_MODEL,
-    max_tokens: 16384,
-    temperature: 0.3,
-    system: SESSION_JSON_SYSTEM,
-    tools: [
-      {
-        type: "web_search_20250305",
-        name: "web_search",
-        max_uses: 5,
-      },
-    ],
-    messages: [{ role: "user", content: userContent }],
-  });
+  const tools = [
+    {
+      type: "web_search_20250305" as const,
+      name: "web_search" as const,
+      max_uses: 5,
+    },
+  ];
 
-  if (message.stop_reason === "pause_turn") {
-    throw new Error(
-      "Claude stopped with pause_turn; try again or adjust max_tokens.",
-    );
+  const messages: MessageParam[] = [
+    { role: "user", content: userContent },
+  ];
+
+  let message: Message | undefined;
+  for (let turn = 0; turn < 8; turn++) {
+    message = await client.messages.create({
+      model: CLAUDE_MODEL,
+      max_tokens: 16384,
+      system: SESSION_JSON_SYSTEM,
+      tools,
+      messages,
+    });
+
+    if (message.stop_reason === "end_turn") {
+      break;
+    }
+
+    if (message.stop_reason === "pause_turn") {
+      messages.push({ role: "assistant", content: message.content });
+      continue;
+    }
+
+    break;
+  }
+
+  if (!message) {
+    throw new Error("No response from Claude");
   }
 
   const rawText = extractAssistantText(message);
