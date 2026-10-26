@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { scoreAnswerWithClaude } from "@/lib/claude-score-response";
 import { generateSessionSummary } from "@/lib/claude-session-summary";
 import { ensureUser } from "@/lib/ensure-user";
+import { loadSessionForScoring } from "@/lib/interviewer-context";
 import { rateLimit } from "@/lib/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
@@ -10,20 +11,21 @@ export const maxDuration = 300;
 
 export async function POST(request: Request) {
   try {
-    // Rate limit: 30 answer submissions per hour per IP
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-    const { allowed } = rateLimit(ip, { limit: 30, windowMs: 60 * 60 * 1000 });
+    const supabase = await createSupabaseServerClient();
+    const user = await ensureUser(supabase);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { allowed } = rateLimit(`respond:${user.id}`, {
+      limit: 30,
+      windowMs: 60 * 60 * 1000,
+    });
     if (!allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
         { status: 429 },
       );
-    }
-
-    const supabase = await createSupabaseServerClient();
-    const user = await ensureUser(supabase);
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = (await request.json()) as {
@@ -48,13 +50,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data: session, error: sessionErr } = await supabase
-      .from("sessions")
-      .select(
-        "id, user_id, company_name, role_title, seniority_level, interview_stage, resume_text, job_description_text, company_research",
-      )
-      .eq("id", sessionId)
-      .single();
+    const { row: session, error: sessionErr } = await loadSessionForScoring(
+      supabase,
+      sessionId,
+    );
 
     if (sessionErr || !session || session.user_id !== user.id) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
@@ -82,6 +81,9 @@ export async function POST(request: Request) {
       resumeText: session.resume_text,
       jobDescriptionText: session.job_description_text,
       companyResearch: session.company_research,
+      interviewerName: session.interviewer_name,
+      interviewerLinkedInUrl: session.interviewer_linkedin_url,
+      interviewerProfile: session.interviewer_profile,
       transcript,
       speechMeta: body.speechMeta ?? null,
     });

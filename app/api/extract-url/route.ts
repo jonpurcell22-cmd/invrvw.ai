@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import * as cheerio from "cheerio";
+import { ensureUser } from "@/lib/ensure-user";
+import { fetchPublicHttps } from "@/lib/safe-fetch-url";
+import { rateLimit } from "@/lib/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -12,11 +15,20 @@ export const maxDuration = 30;
  */
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await ensureUser(supabase);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { allowed } = rateLimit(`extract:${user.id}`, {
+    limit: 20,
+    windowMs: 60 * 60 * 1000,
+  });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: "Too many link fetches. Paste the job description instead." },
+      { status: 429 },
+    );
   }
 
   const body = (await request.json()) as { url?: string };
@@ -81,13 +93,12 @@ export async function POST(request: Request) {
   }
 
   try {
-    const res = await fetch(fetchUrl, {
+    const res = await fetchPublicHttps(fetchUrl, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
         Accept: "text/html,text/plain,application/xhtml+xml",
       },
-      redirect: "follow",
       signal: AbortSignal.timeout(15000),
     });
 

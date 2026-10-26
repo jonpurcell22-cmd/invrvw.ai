@@ -15,9 +15,12 @@ export default function NewSessionPage() {
           New practice session
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-[var(--fg-muted)]">
-          Upload your resume and job description. We use Claude to infer role
-          level, research the company on the web, and create 8–12 scored
-          practice questions.
+          Upload your resume and the job description. Add the LinkedIn profile
+          of the person who will interview you, and we research them along
+          with the company. Questions, scores, and model answers are shaped
+          around that interview. You can start three sessions a day. Your
+          resume and answers stay in your account and are not shared with
+          your instructor.
         </p>
       </div>
 

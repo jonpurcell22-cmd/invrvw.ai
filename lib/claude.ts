@@ -52,6 +52,8 @@ export interface GenerateSessionContentInput {
   interviewStage: string;
   companyHint?: string;
   roleHint?: string;
+  /** Canonical LinkedIn profile URL of the person conducting the interview. */
+  interviewerLinkedInUrl?: string;
 }
 
 export interface GeneratedRubricDimension {
@@ -77,6 +79,8 @@ export interface SessionGenerationResult {
   role_title: string;
   seniority_level: string;
   company_research_summary: string;
+  interviewer_name: string;
+  interviewer_profile_summary: string;
   questions: GeneratedQuestion[];
 }
 
@@ -84,9 +88,20 @@ const SESSION_JSON_SYSTEM = `You are Intrvw.ai, an expert interview coach. You p
 
 You have access to web search. Use it to research the employer company inferred from the job description (and resume context): products, market position, culture, recent news, and mission. Summarize findings in company_research_summary (plain text, suitable for storage).
 
+When the user message includes an interviewer LinkedIn URL, try a brief web search on that profile before you write questions. Public LinkedIn pages are often missing or login-walled, so use search snippets, talks, writing, and company bios. A useful read confirms who they are and what they do: name, current title, company, function in this interview (recruiter, hiring manager, peer, skip-level, founder, or unknown), and career background or a public point of view you can actually support. Do not invent employers, titles, or quotes.
+
+Use that person only when the read is good enough to shape the interview:
+- At least half the questions should be ones this person would plausibly ask. A recruiter probes motivation, trajectory, and communication. A hiring manager probes scope, ownership, and whether the candidate can do the job. A peer probes craft and how it would feel to work together. An executive or founder probes judgment and business impact.
+- Where you have grounded context (their team, product area, or public point of view), let a question reflect it. Do not pretend to quote them.
+- Company-specific questions still apply. The interviewer is an additional lens, not a replacement for company research.
+- Rubric notes should explain how this person's lens changed the weights or what a strong answer sounds like to them. The relevance and values_culture_signal descriptions should name the signals this interviewer is listening for.
+- interviewer_profile_summary is plain text, about 120–200 words, with confirmed facts separated from inference. interviewer_name is the person's name.
+
+If no URL was provided, or the profile is missing, login-walled, or too thin for that read, stop searching. Set interviewer_name and interviewer_profile_summary to empty strings. Write the full question set from the resume, job description, and company only. Do not pad the summary with generic guesses about "someone in this role." An empty interviewer profile is a successful result. Never withhold, shorten, or refuse the questions because interviewer research failed.
+
 Infer seniority_level as one of: intern, early_career, mid, senior, staff, executive. Base this on the job description and resume. Infer the field/industry from the job description to calibrate scoring appropriately.
 
-Generate between 4 and 6 interview questions tailored to the role, stage, and seniority. At least 1–2 questions must explicitly reference company-specific context from your research (name products, strategy, culture, or recent public information). Distribute question types based on seniority: heavier behavioral weighting for mid and senior levels; more situational questions for early-career candidates. Adjust question difficulty based on interview stage: phone screen questions should filter and qualify; final round questions should test for bar-raising strategic thinking.
+Generate between 4 and 6 interview questions tailored to the role, stage, seniority, and — only when you have a real read — the specific interviewer. At least 1–2 questions must explicitly reference company-specific context from your research (name products, strategy, culture, or recent public information). Distribute question types based on seniority: heavier behavioral weighting for mid and senior levels; more situational questions for early-career candidates. Adjust question difficulty based on interview stage: phone screen questions should filter and qualify; final round questions should test for bar-raising strategic thinking.
 
 question_category must be exactly one of: Behavioral, Situational, Technical, Leadership, Culture Fit, Role-Specific.
 
@@ -123,7 +138,7 @@ Apply interview stage calibration:
 - Final Round: Impact 20%, Analytical 20%, Values 15%. Bar-raising threshold. 5-6 questions.
 - Panel: Same as Final Round, avoid duplicate question types.
 
-Include a notes field in the rubric explaining weight adjustments made and why.
+Include a notes field in the rubric explaining weight adjustments made and why. When you have a real read on the interviewer, the notes should say how their lens changed the bar.
 
 Respond with a single JSON object only. No markdown, no code fences, no preamble or trailing commentary.`;
 
@@ -138,7 +153,21 @@ function buildUserPayload(input: GenerateSessionContentInput): string {
   const hintBlock =
     hints.length > 0 ? `${hints.join("\n")}\n\n` : "";
 
-  return `${hintBlock}Interview stage selected by the candidate: ${input.interviewStage}
+  const interviewerUrl = input.interviewerLinkedInUrl?.trim();
+  const interviewerBlock = interviewerUrl
+    ? `--- INTERVIEWER LINKEDIN (optional) ---
+The candidate may interview with the person at this profile. Try a brief web search, then move on.
+URL: ${interviewerUrl}
+
+If you can confirm who they are and what they do, fill interviewer_name and interviewer_profile_summary and shape the questions around them.
+If you cannot get a real read — the profile is missing, private, or too thin — set both fields to empty strings and write the questions from the resume, job description, and company. Still return the full question set. Do not treat a thin profile as an error.
+
+`
+    : `No interviewer LinkedIn URL was provided. Set interviewer_name and interviewer_profile_summary to empty strings. Do not invent an interviewer. Write the full question set from the resume, job description, and company.
+
+`;
+
+  return `${hintBlock}${interviewerBlock}Interview stage selected by the candidate: ${input.interviewStage}
 
 --- RESUME (full text) ---
 ${input.resumeText}
@@ -152,6 +181,8 @@ ${input.jobDescriptionText}
   "role_title": string,
   "seniority_level": "intern" | "early_career" | "mid" | "senior" | "staff" | "executive",
   "company_research_summary": string,
+  "interviewer_name": string,
+  "interviewer_profile_summary": string,
   "questions": [
     {
       "question_text": string,
@@ -174,7 +205,7 @@ ${input.jobDescriptionText}
   ]
 }
 
-The questions array must have length 4–6. rubric.dimensions must have exactly 7 objects whose key values are exactly the seven keys listed in the system message. Weights must sum to 1.0.`;
+The questions array must have length 4–6. rubric.dimensions must have exactly 7 objects whose key values are exactly the seven keys listed in the system message. Weights must sum to 1.0. Always include interviewer_name and interviewer_profile_summary.`;
 }
 
 // Opus 5 runs adaptive thinking by default, so thinking tokens draw down the
@@ -350,6 +381,10 @@ const DIMENSION_DEFAULTS: Record<
   },
 };
 
+// Shorter than this is a stub ("profile unavailable"), not a person we should
+// coach against. Questions still ship; scoring proceeds without an interviewer.
+const USEFUL_INTERVIEWER_READ_MIN_CHARS = 200;
+
 export function validateAndNormalizeSessionGeneration(
   data: unknown,
 ): SessionGenerationResult {
@@ -376,6 +411,16 @@ export function validateAndNormalizeSessionGeneration(
   const company_research_summary = String(
     o.company_research_summary ?? "",
   ).trim();
+  const rawInterviewerName = String(o.interviewer_name ?? "").trim();
+  const rawInterviewerProfile = String(
+    o.interviewer_profile_summary ?? "",
+  ).trim();
+  const usefulInterviewerRead =
+    rawInterviewerProfile.length >= USEFUL_INTERVIEWER_READ_MIN_CHARS;
+  const interviewer_name = usefulInterviewerRead ? rawInterviewerName : "";
+  const interviewer_profile_summary = usefulInterviewerRead
+    ? rawInterviewerProfile
+    : "";
 
   if (!company_name || !role_title || !seniority_level) {
     throw new Error("Invalid JSON: empty company_name, role_title, or seniority_level");
@@ -491,6 +536,8 @@ export function validateAndNormalizeSessionGeneration(
     role_title,
     seniority_level,
     company_research_summary,
+    interviewer_name,
+    interviewer_profile_summary,
     questions,
   };
 }
@@ -498,12 +545,13 @@ export function validateAndNormalizeSessionGeneration(
 async function requestSessionPlan(
   client: Anthropic,
   userContent: string,
+  options: { requireInterviewer: boolean; maxSearchUses: number },
 ): Promise<SessionGenerationResult> {
   const tools = [
     {
       type: "web_search_20250305" as const,
       name: "web_search" as const,
-      max_uses: 5,
+      max_uses: options.maxSearchUses,
     },
   ];
 
@@ -511,8 +559,9 @@ async function requestSessionPlan(
     { role: "user", content: userContent },
   ];
 
+  const maxTurns = options.requireInterviewer ? 12 : 8;
   let message: Message | undefined;
-  for (let turn = 0; turn < 8; turn++) {
+  for (let turn = 0; turn < maxTurns; turn++) {
     message = await client.messages
       .stream({
         model: CLAUDE_MODEL,
@@ -559,11 +608,15 @@ export async function generateSessionInterviewPlan(
 ): Promise<SessionGenerationResult> {
   const client = createAnthropicClient();
   const userContent = buildUserPayload(input);
+  const requireInterviewer = Boolean(input.interviewerLinkedInUrl?.trim());
   const startedAt = Date.now();
 
   for (let attempt = 1; ; attempt++) {
     try {
-      return await requestSessionPlan(client, userContent);
+      return await requestSessionPlan(client, userContent, {
+        requireInterviewer,
+        maxSearchUses: requireInterviewer ? 8 : 5,
+      });
     } catch (e) {
       // API-level failures (auth, rate limits, 5xx) are already retried by the
       // SDK, so a second full generation would only burn the time budget. Retry

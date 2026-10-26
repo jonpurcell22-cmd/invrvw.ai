@@ -18,6 +18,9 @@ create table sessions (
   resume_text text,
   job_description_text text,
   company_research text,
+  interviewer_linkedin_url text,
+  interviewer_name text,
+  interviewer_profile text,
   overall_score integer,
   summary text,
   status text default 'in_progress'
@@ -30,6 +33,17 @@ create table questions (
   question_text text,
   question_category text,
   rubric jsonb
+);
+
+create table session_feedback (
+  id uuid default gen_random_uuid() primary key,
+  created_at timestamp with time zone default now(),
+  session_id uuid references sessions(id) on delete cascade,
+  user_id uuid references auth.users(id) on delete cascade,
+  stuck text,
+  useful text,
+  change text,
+  unique (session_id)
 );
 
 create table responses (
@@ -47,6 +61,7 @@ create table responses (
 alter table sessions enable row level security;
 alter table questions enable row level security;
 alter table responses enable row level security;
+alter table session_feedback enable row level security;
 
 create policy "Users can view own sessions"
   on sessions for select
@@ -99,3 +114,18 @@ create policy "Users can update own responses"
       select id from sessions where user_id = auth.uid()
     )
   );
+
+create policy "Users can view own feedback"
+  on session_feedback for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own feedback"
+  on session_feedback for insert
+  with check (
+    auth.uid() = user_id
+    and session_id in (select id from sessions where user_id = auth.uid())
+  );
+
+create policy "Users can update own feedback"
+  on session_feedback for update
+  using (auth.uid() = user_id);

@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import type { Session } from "@/types";
+import { DeleteAccountButton } from "@/components/DeleteAccountButton";
 import { RetrySessionButton } from "@/components/RetrySessionButton";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 
@@ -217,6 +218,8 @@ export default async function DashboardPage() {
           </ul>
         )}
       </section>
+
+      <DeleteAccountButton />
     </main>
   );
 }

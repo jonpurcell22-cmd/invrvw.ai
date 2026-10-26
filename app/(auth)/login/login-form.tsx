@@ -6,19 +6,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { safeNextPath } from "@/lib/safe-next";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
-
-function safeNextPath(raw: string | null): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) {
-    return "/dashboard";
-  }
-  return raw;
-}
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = safeNextPath(searchParams.get("next"));
+  const linkError = searchParams.get("error") === "link";
 
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -75,6 +70,19 @@ export function LoginForm() {
             autoComplete="current-password"
             required
           />
+          <p className="text-right text-sm">
+            <Link
+              href="/forgot-password"
+              className="text-[var(--fg-muted)] underline-offset-4 hover:text-[var(--fg)] hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </p>
+          {linkError ? (
+            <p className="text-sm text-[var(--danger)]" role="alert">
+              That link expired. Request a new password reset.
+            </p>
+          ) : null}
           {error ? (
             <p className="text-sm text-[var(--danger)]" role="alert">
               {error}
@@ -87,7 +95,11 @@ export function LoginForm() {
         <p className="mt-6 text-center text-sm text-[var(--fg-muted)]">
           No account?{" "}
           <Link
-            href="/signup"
+            href={
+              nextPath === "/dashboard"
+                ? "/signup"
+                : `/signup?next=${encodeURIComponent(nextPath)}`
+            }
             className="font-medium text-[var(--accent)] underline-offset-4 hover:underline"
           >
             Sign up

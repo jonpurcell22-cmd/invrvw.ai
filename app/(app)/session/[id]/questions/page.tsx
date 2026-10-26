@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { SessionQuestionPractice } from "@/components/SessionQuestionPractice";
+import {
+  isMissingInterviewerColumn,
+  unpackCompanyResearch,
+} from "@/lib/interviewer-context";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export default async function SessionQuestionsPage({
@@ -14,17 +18,40 @@ export default async function SessionQuestionsPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect(`/session/new`);
+  if (!user || user.is_anonymous) {
+    redirect(`/login?next=${encodeURIComponent(`/session/${id}/questions`)}`);
   }
 
-  const { data: session, error: sessionError } = await supabase
+  const withInterviewer = await supabase
     .from("sessions")
-    .select("id, user_id")
+    .select("id, user_id, interviewer_name")
     .eq("id", id)
     .single();
 
-  if (sessionError || !session || session.user_id !== user.id) {
+  let ownerId: string | null = withInterviewer.data?.user_id ?? null;
+  let interviewerName = withInterviewer.data?.interviewer_name?.trim() || null;
+
+  if (
+    withInterviewer.error &&
+    isMissingInterviewerColumn(withInterviewer.error.message)
+  ) {
+    const fallback = await supabase
+      .from("sessions")
+      .select("id, user_id, company_research")
+      .eq("id", id)
+      .single();
+    ownerId = fallback.data?.user_id ?? null;
+    interviewerName = fallback.data
+      ? unpackCompanyResearch(fallback.data.company_research).interviewer.name
+      : null;
+    if (fallback.error || !fallback.data) {
+      notFound();
+    }
+  } else if (withInterviewer.error || !withInterviewer.data) {
+    notFound();
+  }
+
+  if (ownerId !== user.id) {
     notFound();
   }
 
@@ -75,6 +102,7 @@ export default async function SessionQuestionsPage({
         sessionId={id}
         questions={questions}
         startIndex={safeStart}
+        interviewerName={interviewerName}
       />
     </main>
   );

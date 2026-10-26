@@ -47,8 +47,12 @@ export function ShareButton() {
         error?: string;
       };
 
-      if (data.error) {
-        setError(data.error);
+      if (!res.ok || data.error) {
+        setError(
+          res.status === 401
+            ? "Log in to send an invite."
+            : (data.error ?? "Could not send the invite."),
+        );
         setSending(false);
         return;
       }
@@ -91,7 +95,7 @@ export function ShareButton() {
           {sent ? (
             <div className="flex items-center gap-2 py-2 text-sm text-[var(--success)]">
               <Check size={16} />
-              <span>Invite sent — you're a good friend</span>
+              <span>Invite sent</span>
             </div>
           ) : (
             <>
@@ -111,8 +115,8 @@ export function ShareButton() {
                 </button>
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-[var(--fg-subtle)]">
-                Send them a free invite. No signup needed on their end — they
-                can start practicing immediately.
+                Send them an invite. They create a free account, then start
+                practicing.
               </p>
               <div className="mt-3 flex gap-2">
                 <input

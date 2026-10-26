@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { transcribeAudioBufferWithClaude } from "@/lib/audio";
 import { ensureUser } from "@/lib/ensure-user";
+import { MAX_AUDIO_BYTES } from "@/lib/limits";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -37,6 +38,12 @@ export async function POST(request: Request) {
     const file = form.get("audio");
     if (!(file instanceof File) || file.size === 0) {
       return NextResponse.json({ error: "Audio file required" }, { status: 400 });
+    }
+    if (file.size > MAX_AUDIO_BYTES) {
+      return NextResponse.json(
+        { error: "Recording must be under 15 MB." },
+        { status: 400 },
+      );
     }
 
     let mime = file.type;

@@ -35,10 +35,12 @@ export function SessionQuestionPractice({
   sessionId,
   questions,
   startIndex,
+  interviewerName,
 }: {
   sessionId: string;
   questions: PracticeQuestionRow[];
   startIndex: number;
+  interviewerName?: string | null;
 }) {
   const router = useRouter();
   const [index, setIndex] = useState(() =>
@@ -213,6 +215,11 @@ export function SessionQuestionPractice({
         <Badge tone="neutral">{current.question_category}</Badge>
         {currentSaved ? (
           <Badge tone="success">Answered</Badge>
+        ) : null}
+        {interviewerName ? (
+          <span className="text-sm text-[var(--fg-muted)]">
+            Interviewing with {interviewerName}
+          </span>
         ) : null}
       </div>
 

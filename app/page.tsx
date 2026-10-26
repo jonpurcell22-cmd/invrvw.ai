@@ -84,7 +84,7 @@ export default function HomePage() {
             <Button variant="secondary" size="sm" href="/login">
               Log in
             </Button>
-            <Button variant="primary" size="sm" href="/session/new">
+            <Button variant="primary" size="sm" href="/signup">
               Start practicing
             </Button>
           </nav>
@@ -110,8 +110,8 @@ export default function HomePage() {
               real experience, not generic templates.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Button variant="primary" size="lg" href="/session/new">
-                Try it free — no signup
+              <Button variant="primary" size="lg" href="/signup">
+                Create a free account
               </Button>
               <Button variant="secondary" size="lg" href="#how-it-works">
                 How it works
@@ -223,9 +223,9 @@ export default function HomePage() {
             Your next interview is worth preparing for
           </h2>
           <p className="mt-4 text-sm text-[var(--fg-muted)]">
-            Free during early access. No signup needed to start.
+            Free during early access. Create an account to start.
           </p>
-          <Button variant="primary" size="lg" href="/session/new" className="mt-8">
+          <Button variant="primary" size="lg" href="/signup" className="mt-8">
             Start practicing now
           </Button>
         </div>

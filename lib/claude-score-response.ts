@@ -59,6 +59,9 @@ export async function scoreAnswerWithClaude(input: {
   resumeText: string | null;
   jobDescriptionText: string | null;
   companyResearch: string | null;
+  interviewerName?: string | null;
+  interviewerLinkedInUrl?: string | null;
+  interviewerProfile?: string | null;
   transcript: string;
   speechMeta: {
     durationSec?: number | null;
@@ -142,8 +145,8 @@ Identify 1-2 specific strengths from the candidate's transcript. Reference the e
 PART 2 — HIGHEST-LEVERAGE IMPROVEMENT (2-3 sentences):
 Identify the single most impactful gap. Frame as forward-looking coaching, not criticism. Use growth-oriented language: "To take this from good to exceptional..." or "The one shift that would make this answer memorable..." Use autonomy-supportive language: "consider," "one approach," "might" — not "you must." One gap only.
 
-PART 3 — PERSONALIZED MODEL ANSWER:
-Build a complete STAR+Reflection answer using the candidate's ACTUAL background from their resume. This is not a generic example — it is their story, told in a way they never would have thought of.
+PART 3 — PERSONALIZED MODEL ANSWER (the ideal answer):
+Build a complete STAR+Reflection answer using the candidate's ACTUAL background from their resume. This is not a generic example — it is their story, told in a way they never would have thought of. When an interviewer profile is included, this is the ideal answer for that specific person.
 
 Mandatory personalization:
 - Reference the candidate's actual company names from the resume
@@ -151,6 +154,7 @@ Mandatory personalization:
 - Draw on real accomplishments from the resume or transcript
 - If they referenced a real experience in their transcript, build from that — do not replace it
 - Do NOT fabricate specifics not provided. If a metric is missing, write [insert the specific metric here]
+- When an interviewer profile is included, choose the emphasis, vocabulary, and result that would land with them. A recruiter needs a clear narrative and motivation. A hiring manager needs scope, ownership, and outcomes. A peer needs craft and collaboration. An executive or founder needs judgment and business impact. Do not say the interviewer's name inside this spoken answer.
 
 Structure and proportions: Hook (1 sentence, opens with stakes) → Situation (2-3 sentences, ~15%) → Task (1 sentence, ~10%) → Action (3-5 sentences, ~55%, using I throughout, with decision logic and trade-offs) → Result (2-3 sentences, ~15%, quantified with context) → Reflection (1-2 sentences, ~5%, specific lesson + connection to target role)
 
@@ -191,6 +195,14 @@ ANTI-SYCOPHANCY RULES:
 - Never fabricate details not in the resume or transcript
 - Never say the candidate's experience is wrong — reframe their existing material
 
+INTERVIEWER LENS:
+If the user message includes an interviewer profile, score and coach for that person, not a generic interviewer.
+- Relevance: a 4 or 5 must address what this interviewer is listening for, not only the literal wording of the question.
+- Values and culture: credit signals that match how this person works and what their background suggests they respect. Do not penalize the candidate for failing to flatter them.
+- The ideal model answer stays the candidate's true story, pitched to this interviewer as described in Part 3. The callback or the improvement may name the interviewer once if it makes the coaching concrete.
+- Do not invent rapport, shared history, or quotes from the interviewer.
+If no interviewer profile is included, score for the role and company only.
+
 Respond with JSON only — no markdown, no preamble.`;
 
   const fillerDetail = input.speechMeta?.fillerBreakdown?.length
@@ -218,6 +230,14 @@ Use ALL delivery data when scoring Communication Clarity. Specifically address: 
     ? `\n\nCompany research summary:\n${input.companyResearch}`
     : "";
 
+  const interviewerSection = input.interviewerProfile?.trim()
+    ? `\n\nInterviewer the candidate will meet. Score every dimension against what this person is listening for, and write the ideal model answer for them:
+- Name: ${input.interviewerName?.trim() || "Unknown"}
+- LinkedIn: ${input.interviewerLinkedInUrl?.trim() || "not provided"}
+- Profile:
+${input.interviewerProfile.trim()}`
+    : "";
+
   const user = `Role context:
 - Company: ${input.companyName ?? "Unknown"}
 - Role title: ${input.roleTitle ?? "Unknown"}
@@ -233,7 +253,7 @@ Rubric (JSON):
 ${JSON.stringify(input.rubric)}
 
 Candidate transcript:
-${input.transcript}${speechSection}${resumeSection}${jdSection}${researchSection}
+${input.transcript}${speechSection}${resumeSection}${jdSection}${researchSection}${interviewerSection}
 
 Required JSON shape:
 {

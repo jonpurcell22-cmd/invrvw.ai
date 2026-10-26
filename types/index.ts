@@ -74,6 +74,9 @@ export interface Session {
   resumeText: string | null;
   jobDescriptionText: string | null;
   companyResearch: string | null;
+  interviewerLinkedInUrl: string | null;
+  interviewerName: string | null;
+  interviewerProfile: string | null;
   /** 0–100 when completed */
   overallScore: number | null;
   status: SessionStatus;

@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { GeneratingStatus } from "@/components/GeneratingStatus";
 import { INTERVIEW_STAGES } from "@/lib/constants";
+import { parseInterviewerLinkedInUrl } from "@/lib/linkedin-url";
 
 type Step = "resume" | "jd" | "details" | "generating";
 type JdMode = "paste" | "url" | "file";
@@ -35,6 +37,7 @@ export function NewSessionForm() {
   const [jdUrl, setJdUrl] = useState("");
   const [jdFetching, setJdFetching] = useState(false);
   const jdInputRef = useRef<HTMLInputElement>(null);
+  const [interviewerLinkedIn, setInterviewerLinkedIn] = useState("");
 
   // Details state (auto-populated)
   const [stage, setStage] = useState(INTERVIEW_STAGES[0]);
@@ -67,6 +70,13 @@ export function NewSessionForm() {
   // Get the resolved JD text (from paste, URL fetch, or file — file handled server-side)
   const resolvedJdText = jdText.trim();
   const hasJd = Boolean(jdFile || resolvedJdText);
+  const interviewerParsed = parseInterviewerLinkedInUrl(interviewerLinkedIn);
+  const interviewerError =
+    interviewerParsed && "error" in interviewerParsed
+      ? interviewerParsed.error
+      : null;
+  const interviewerUrl =
+    interviewerParsed && "url" in interviewerParsed ? interviewerParsed.url : null;
 
   // Fetch URL content
   async function handleFetchUrl() {
@@ -122,6 +132,10 @@ export function NewSessionForm() {
 
   async function handleSubmit() {
     setError(null);
+    if (interviewerError) {
+      setError(interviewerError);
+      return;
+    }
     setStep("generating");
 
     const fd = new FormData();
@@ -138,6 +152,7 @@ export function NewSessionForm() {
     fd.set("interviewStage", stage);
     if (companyHint.trim()) fd.set("companyHint", companyHint.trim());
     if (roleHint.trim()) fd.set("roleHint", roleHint.trim());
+    if (interviewerUrl) fd.set("interviewerLinkedInUrl", interviewerUrl);
 
     try {
       const res = await fetch("/api/session/create", {
@@ -180,14 +195,18 @@ export function NewSessionForm() {
     }
   }
 
+  // Generation runs 1-2 minutes. Take over the screen the way the scoring step
+  // does, rather than leaving a dead, fully-disabled form on screen.
+  if (step === "generating") {
+    return <GeneratingStatus includeInterviewer={Boolean(interviewerUrl)} />;
+  }
+
   return (
     <div className="space-y-6">
       {/* Progress indicator */}
       <div className="flex items-center gap-2">
         {(["resume", "jd", "details"] as const).map((s, i) => {
-          const currentIdx = ["resume", "jd", "details"].indexOf(
-            step === "generating" ? "details" : step,
-          );
+          const currentIdx = ["resume", "jd", "details"].indexOf(step);
           return (
             <div key={s} className="flex items-center gap-2">
               <div
@@ -410,6 +429,14 @@ export function NewSessionForm() {
             )}
           </div>
 
+          <div className="mt-6 border-t border-[var(--border)] pt-6">
+            <InterviewerLinkedInField
+              value={interviewerLinkedIn}
+              onChange={setInterviewerLinkedIn}
+              error={interviewerError}
+            />
+          </div>
+
           {error ? (
             <p
               ref={errorRef}
@@ -426,7 +453,7 @@ export function NewSessionForm() {
             </Button>
             <Button
               variant="primary"
-              disabled={!hasJd || jdFetching}
+              disabled={!hasJd || jdFetching || Boolean(interviewerError)}
               onClick={handleGoToDetails}
             >
               Continue
@@ -436,7 +463,7 @@ export function NewSessionForm() {
       ) : null}
 
       {/* Step 3: Quick setup */}
-      {step === "details" || step === "generating" ? (
+      {step === "details" ? (
         <div className="animate-fade-up rounded-xl border border-[var(--border)] bg-[var(--surface)] p-6 shadow-[var(--shadow-card)]">
           <h2 className="text-lg font-bold text-[var(--fg)]">Quick setup</h2>
           <p className="mt-1 text-sm text-[var(--fg-muted)]">
@@ -457,7 +484,6 @@ export function NewSessionForm() {
                 id="stage"
                 value={stage}
                 onChange={(e) => setStage(e.target.value as typeof stage)}
-                disabled={step === "generating"}
                 className="h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 text-sm text-[var(--fg)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
               >
                 {INTERVIEW_STAGES.map((s) => (
@@ -481,7 +507,6 @@ export function NewSessionForm() {
                   type="text"
                   value={companyHint}
                   onChange={(e) => setCompanyHint(e.target.value)}
-                  disabled={step === "generating"}
                   placeholder={extracting ? "Detecting…" : "e.g. Stripe"}
                   className="flex h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
                 />
@@ -498,21 +523,18 @@ export function NewSessionForm() {
                   type="text"
                   value={roleHint}
                   onChange={(e) => setRoleHint(e.target.value)}
-                  disabled={step === "generating"}
                   placeholder={extracting ? "Detecting…" : "e.g. Staff Engineer"}
                   className="flex h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
                 />
               </div>
             </div>
-          </div>
 
-          {step === "generating" ? (
-            <p className="mt-6 rounded-lg border border-[var(--accent)]/20 bg-[var(--accent-muted)] px-4 py-3 text-sm text-[var(--accent)]">
-              Generating your interview — this takes{" "}
-              <span className="font-semibold">1–2 minutes</span> while we
-              research the company and build tailored questions.
-            </p>
-          ) : null}
+            <InterviewerLinkedInField
+              value={interviewerLinkedIn}
+              onChange={setInterviewerLinkedIn}
+              error={interviewerError}
+            />
+          </div>
 
           {error ? (
             <div
@@ -531,23 +553,73 @@ export function NewSessionForm() {
           ) : null}
 
           <div className="mt-6 flex justify-between gap-3">
-            <Button
-              variant="ghost"
-              onClick={() => setStep("jd")}
-              disabled={step === "generating"}
-            >
+            <Button variant="ghost" onClick={() => setStep("jd")}>
               Back
             </Button>
             <Button
               variant="primary"
-              disabled={step === "generating"}
+              disabled={Boolean(interviewerError)}
               onClick={handleSubmit}
             >
-              {step === "generating" ? "Generating…" : "Generate questions"}
+              Generate questions
             </Button>
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function InterviewerLinkedInField({
+  value,
+  onChange,
+  error,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  error: string | null;
+}) {
+  return (
+    <div className="space-y-2">
+      <label
+        htmlFor="interviewer-linkedin"
+        className="block text-sm font-medium text-[var(--fg)]"
+      >
+        Who you&apos;re interviewing with
+        <span className="ml-2 text-xs font-normal text-[var(--fg-subtle)]">
+          Optional
+        </span>
+      </label>
+      <input
+        id="interviewer-linkedin"
+        type="url"
+        inputMode="url"
+        autoComplete="off"
+        spellCheck={false}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="https://www.linkedin.com/in/their-name"
+        aria-invalid={error ? true : undefined}
+        aria-describedby={
+          error ? "interviewer-linkedin-error" : "interviewer-linkedin-hint"
+        }
+        className="flex h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--surface-hover)] px-3 text-sm text-[var(--fg)] placeholder:text-[var(--fg-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+      />
+      {error ? (
+        <p
+          id="interviewer-linkedin-error"
+          className="text-sm text-[var(--danger)]"
+          role="alert"
+        >
+          {error}
+        </p>
+      ) : (
+        <p id="interviewer-linkedin-hint" className="text-xs text-[var(--fg-subtle)]">
+          Paste their LinkedIn profile. Questions, scores, and the ideal
+          answer are shaped around that person. Leave this blank if you
+          don&apos;t have a link yet.
+        </p>
+      )}
     </div>
   );
 }

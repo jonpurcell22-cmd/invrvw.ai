@@ -2,11 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { tryGetSupabasePublicConfig } from "@/lib/supabase";
 
-/** Routes that require a REAL (non-anonymous) account */
-const AUTH_REQUIRED_PREFIXES = ["/dashboard", "/admin"];
-
-/** Routes that need at least an anonymous session */
-const SESSION_PREFIXES = ["/session"];
+/** Practice and account pages require a real (non-anonymous) account. */
+const AUTH_REQUIRED_PREFIXES = ["/dashboard", "/admin", "/session"];
 
 function matchesPrefix(pathname: string, prefixes: string[]) {
   return prefixes.some(
@@ -57,7 +54,7 @@ export async function middleware(request: NextRequest) {
     (data?.claims as Record<string, unknown>)?.is_anonymous === true;
   const isRealUser = isAuthed && !isAnonymous;
 
-  // Dashboard and admin require a real (non-anonymous) account
+  // Practice, dashboard, and admin require a real account.
   if (matchesPrefix(pathname, AUTH_REQUIRED_PREFIXES) && !isRealUser) {
     const login = new URL("/login", request.url);
     login.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
@@ -75,11 +72,6 @@ export async function middleware(request: NextRequest) {
     if (!adminEmail || email !== adminEmail) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
-  }
-
-  // Session routes: auto-create anonymous session if no auth
-  if (matchesPrefix(pathname, SESSION_PREFIXES) && !isAuthed) {
-    await supabase.auth.signInAnonymously();
   }
 
   // Redirect logged-in real users away from login/signup

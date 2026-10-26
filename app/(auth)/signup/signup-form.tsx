@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
+import { safeNextPath } from "@/lib/safe-next";
 import { createSupabaseBrowserClient } from "@/lib/supabase";
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const nextPath = safeNextPath(searchParams.get("next"));
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -31,6 +34,7 @@ export function SignupForm() {
       email,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
         ...(name ? { data: { full_name: name } } : {}),
       },
     });
@@ -49,15 +53,13 @@ export function SignupForm() {
         body: JSON.stringify({ email, name: name || undefined }),
       }).catch(() => {});
 
-      router.push("/dashboard");
+      router.push(nextPath);
       router.refresh();
       setPending(false);
       return;
     }
 
-    setInfo(
-      "Check your email to confirm your account, then log in. (Disable \u201cConfirm email\u201d in Supabase Auth settings for faster local testing.)",
-    );
+    setInfo("Check your email to confirm your account, then log in.");
     setPending(false);
   }
 
@@ -66,7 +68,9 @@ export function SignupForm() {
       <CardHeader>
         <CardTitle>Create account</CardTitle>
         <CardDescription>
-          Free for now — no paywall in v1.
+          Your resume, job description, and answer transcripts are stored in
+          your account and sent to Anthropic to write your coaching. They are
+          not shared with your instructor.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -90,6 +94,7 @@ export function SignupForm() {
             name="password"
             type="password"
             autoComplete="new-password"
+            minLength={8}
             required
           />
           {error ? (

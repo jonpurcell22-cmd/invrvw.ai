@@ -1,27 +1,41 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { ensureUser } from "@/lib/ensure-user";
+import { escapeHtml, plainLabel } from "@/lib/html";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
 
+function safeResultsPath(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  return /^\/session\/[0-9a-f-]{36}\/results$/.test(raw) ? raw : null;
+}
+
 /**
  * POST /api/email/welcome
- * Sends a welcome email to a new user after registration.
- * Falls back silently if RESEND_API_KEY is not set.
+ * Sends a welcome email to the signed-in user. The address comes from the
+ * session, not the request body.
  */
 export async function POST(request: Request) {
-  const body = (await request.json()) as {
-    email?: string;
+  const supabase = await createSupabaseServerClient();
+  const user = await ensureUser(supabase);
+  const email = user?.email?.trim();
+  if (!user || !email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = (await request.json().catch(() => ({}))) as {
     name?: string;
     resultsUrl?: string;
   };
 
-  const email = body.email?.trim();
-  if (!email) {
-    return NextResponse.json({ error: "Email required" }, { status: 400 });
-  }
-
-  const name = body.name?.trim() || null;
-  const resultsUrl = body.resultsUrl?.trim() || null;
+  const metaName =
+    typeof user.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name
+      : null;
+  const name = plainLabel(metaName || body.name, "");
+  const safeName = escapeHtml(name);
+  const resultsUrl = safeResultsPath(body.resultsUrl?.trim());
   const apiKey = process.env.RESEND_API_KEY?.trim();
 
   if (!apiKey) {
@@ -32,7 +46,7 @@ export async function POST(request: Request) {
   try {
     const resend = new Resend(apiKey);
 
-    const greeting = name ? `Hey ${name},` : "Hey,";
+    const greeting = safeName ? `Hey ${safeName},` : "Hey,";
     const resultsBlock = resultsUrl
       ? `
   <p style="font-size: 16px; line-height: 1.6; margin-bottom: 24px;">

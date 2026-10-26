@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAnthropicClient, CLAUDE_MODEL } from "@/lib/claude";
+import { ensureUser } from "@/lib/ensure-user";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -12,9 +13,7 @@ export const maxDuration = 30;
  */
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await ensureUser(supabase);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

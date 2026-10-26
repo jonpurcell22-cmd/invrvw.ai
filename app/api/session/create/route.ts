@@ -6,7 +6,12 @@ import {
 import { INTERVIEW_STAGES } from "@/lib/constants";
 import { parseDocumentBuffer } from "@/lib/docParser";
 import { ensureUser } from "@/lib/ensure-user";
-import { rateLimit } from "@/lib/rate-limit";
+import {
+  isMissingInterviewerColumn,
+  packCompanyResearch,
+} from "@/lib/interviewer-context";
+import { parseInterviewerLinkedInUrl } from "@/lib/linkedin-url";
+import { DAILY_SESSION_LIMIT, MAX_DOC_BYTES, trimContext } from "@/lib/limits";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export const runtime = "nodejs";
@@ -28,23 +33,38 @@ function rubricToJsonb(q: GeneratedQuestion) {
   };
 }
 
+function tooLarge(file: File, label: string): string | null {
+  if (file.size > MAX_DOC_BYTES) {
+    return `${label} must be under 8 MB.`;
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   try {
-    // Rate limit: 5 session creations per hour per IP
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-    const { allowed } = rateLimit(ip, { limit: 5, windowMs: 60 * 60 * 1000 });
-    if (!allowed) {
-      return NextResponse.json(
-        { error: "Too many sessions created. Please try again later." },
-        { status: 429 },
-      );
-    }
-
     const supabase = await createSupabaseServerClient();
     const user = await ensureUser(supabase);
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { count, error: countError } = await supabase
+      .from("sessions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", since);
+
+    if (countError) {
+      console.error("Session count failed:", countError.message);
+    } else if ((count ?? 0) >= DAILY_SESSION_LIMIT) {
+      return NextResponse.json(
+        {
+          error: `You can start ${DAILY_SESSION_LIMIT} practice sessions a day. Try again tomorrow.`,
+        },
+        { status: 429 },
+      );
     }
 
     const contentType = request.headers.get("content-type") ?? "";
@@ -63,8 +83,12 @@ export async function POST(request: Request) {
     const jdFileEntry = formData.get("jobDescriptionFile");
     const jdTextRaw = String(formData.get("jobDescriptionText") ?? "").trim();
 
-    let jobDescriptionText = jdTextRaw;
+    let jobDescriptionText = trimContext(jdTextRaw);
     if (jdFileEntry instanceof File && jdFileEntry.size > 0) {
+      const sizeError = tooLarge(jdFileEntry, "Job description");
+      if (sizeError) {
+        return NextResponse.json({ error: sizeError }, { status: 400 });
+      }
       const jdBuf = Buffer.from(await jdFileEntry.arrayBuffer());
       const parsed = await parseDocumentBuffer(jdBuf, jdFileEntry.name);
       if (!parsed.text.trim()) {
@@ -73,7 +97,7 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
-      jobDescriptionText = parsed.text.trim();
+      jobDescriptionText = trimContext(parsed.text);
     }
 
     if (!jobDescriptionText) {
@@ -93,6 +117,21 @@ export async function POST(request: Request) {
 
     const companyHint = String(formData.get("companyHint") ?? "").trim();
     const roleHint = String(formData.get("roleHint") ?? "").trim();
+
+    const interviewerRaw = String(
+      formData.get("interviewerLinkedInUrl") ?? "",
+    ).trim();
+    const interviewerParsed = parseInterviewerLinkedInUrl(interviewerRaw);
+    if (interviewerParsed && "error" in interviewerParsed) {
+      return NextResponse.json(
+        { error: interviewerParsed.error },
+        { status: 400 },
+      );
+    }
+    const interviewerLinkedInUrl =
+      interviewerParsed && "url" in interviewerParsed
+        ? interviewerParsed.url
+        : null;
 
     let resumeText = "";
     let resumeFilename = "";
@@ -121,6 +160,10 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
+      const sizeError = tooLarge(resumeEntry, "Resume");
+      if (sizeError) {
+        return NextResponse.json({ error: sizeError }, { status: 400 });
+      }
       const resumeBuf = Buffer.from(await resumeEntry.arrayBuffer());
       const resumeParsed = await parseDocumentBuffer(resumeBuf, resumeEntry.name);
       if (!resumeParsed.text.trim()) {
@@ -129,7 +172,7 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
-      resumeText = resumeParsed.text.trim();
+      resumeText = trimContext(resumeParsed.text);
       resumeFilename = resumeEntry.name;
 
       // Save to profile for future use (non-blocking — don't fail session creation)
@@ -146,30 +189,63 @@ export async function POST(request: Request) {
         });
     }
 
+    resumeText = trimContext(resumeText);
+    jobDescriptionText = trimContext(jobDescriptionText);
+
     const plan = await generateSessionInterviewPlan({
       resumeText,
       jobDescriptionText,
       interviewStage,
       companyHint: companyHint || undefined,
       roleHint: roleHint || undefined,
+      interviewerLinkedInUrl: interviewerLinkedInUrl ?? undefined,
     });
 
-    const { data: sessionRow, error: sessionError } = await supabase
+    const interviewerName = plan.interviewer_name.trim() || null;
+    const interviewerProfile = plan.interviewer_profile_summary.trim() || null;
+
+    const sessionInsert = {
+      user_id: user.id,
+      company_name: plan.company_name,
+      role_title: plan.role_title,
+      interview_stage: interviewStage,
+      seniority_level: plan.seniority_level,
+      resume_text: resumeText,
+      job_description_text: jobDescriptionText,
+      company_research: plan.company_research_summary,
+      overall_score: null,
+      status: "awaiting_answers",
+    };
+
+    let { data: sessionRow, error: sessionError } = await supabase
       .from("sessions")
       .insert({
-        user_id: user.id,
-        company_name: plan.company_name,
-        role_title: plan.role_title,
-        interview_stage: interviewStage,
-        seniority_level: plan.seniority_level,
-        resume_text: resumeText,
-        job_description_text: jobDescriptionText,
-        company_research: plan.company_research_summary,
-        overall_score: null,
-        status: "awaiting_answers",
+        ...sessionInsert,
+        interviewer_linkedin_url: interviewerLinkedInUrl,
+        interviewer_name: interviewerName,
+        interviewer_profile: interviewerProfile,
       })
       .select("id")
       .single();
+
+    // Sessions created before the interviewer columns exist still need the
+    // profile available at scoring time, so pack it into company research.
+    if (sessionError && isMissingInterviewerColumn(sessionError.message)) {
+      const fallback = await supabase
+        .from("sessions")
+        .insert({
+          ...sessionInsert,
+          company_research: packCompanyResearch(plan.company_research_summary, {
+            name: interviewerName,
+            linkedinUrl: interviewerLinkedInUrl,
+            profile: interviewerProfile,
+          }),
+        })
+        .select("id")
+        .single();
+      sessionRow = fallback.data;
+      sessionError = fallback.error;
+    }
 
     if (sessionError || !sessionRow) {
       console.error(sessionError);

@@ -1,23 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * Ensures there's a user session — either real or anonymous.
- * Returns the user, creating an anonymous session if needed.
+ * Returns the signed-in account. Anonymous sessions are treated as logged out
+ * so practice, scoring, and uploads require a real account.
  */
 export async function ensureUser(supabase: SupabaseClient) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (user) return user;
-
-  // No session — create anonymous one
-  const { data: anonData, error: anonError } =
-    await supabase.auth.signInAnonymously();
-
-  if (anonError || !anonData?.user) {
-    return null;
-  }
-
-  return anonData.user;
+  if (!user || user.is_anonymous) return null;
+  return user;
 }
