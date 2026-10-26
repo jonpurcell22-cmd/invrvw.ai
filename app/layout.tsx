@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Intrvw.ai — AI Interview Coaching",
     description:
-      "Tailored questions. Scored answers. Personalized coaching built from your actual background. Free to start — no signup required.",
+      "Tailored questions. Scored answers. Personalized coaching built from your actual background. Free to start.",
     url: "https://intrvw.ai",
     siteName: "Intrvw.ai",
     type: "website",
